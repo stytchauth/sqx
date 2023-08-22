@@ -7,7 +7,7 @@ type ErrTooManyRows struct {
 	Actual   int
 }
 
-func (e *ErrTooManyRows) Error() string {
+func (e ErrTooManyRows) Error() string {
 	return fmt.Errorf("too many rows: expected = %d actual = %d",
 		e.Expected, e.Actual).Error()
 }

@@ -193,7 +193,7 @@ func (b SelectBuilder[T]) UnionAll(other SelectBuilder[T]) SelectBuilder[T] {
 	return b.withBuilder(b.builder.Suffix("UNION ALL ("+query+")", args...))
 }
 
-func (b SelectBuilder[T]) One() (*T, error) {
+func (b SelectBuilder[T]) one(strict bool) (*T, error) {
 	dest, err := b.All()
 
 	if err != nil {
@@ -203,12 +203,33 @@ func (b SelectBuilder[T]) One() (*T, error) {
 		// since a slice of zero elements is a valid return value. So we raise it ourselves now.
 		return nil, sql.ErrNoRows
 	}
-	// TODO: Optionally warn if len(dest) > 1
+
+	if strict && len(dest) > 1 {
+		return nil, ErrTooManyRows{Expected: 1, Actual: len(dest)}
+	}
+
 	return &dest[0], nil
+}
+
+func (b SelectBuilder[T]) One() (*T, error) {
+	return b.one(false)
+}
+
+func (b SelectBuilder[T]) OneStrict() (*T, error) {
+	return b.one(true)
 }
 
 func (b SelectBuilder[T]) OneScalar() (T, error) {
 	ptr, err := b.One()
+	if err != nil {
+		var uninitialized T
+		return uninitialized, err
+	}
+	return *ptr, nil
+}
+
+func (b SelectBuilder[T]) OneScalarStrict() (T, error) {
+	ptr, err := b.OneStrict()
 	if err != nil {
 		var uninitialized T
 		return uninitialized, err
