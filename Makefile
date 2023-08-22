@@ -17,6 +17,10 @@ lint: # Run the linter and auto-fix issues where possible
 services: # Start local development services (databases, etc.)
 	docker-compose up -d
 
+.PHONY: wait-for-mysql
+wait-for-mysql: # Wait for MySQL to start and be ready to accept connections
+	./utils/wait-for-mysql.sh
+
 .PHONY: services-down
 services-down: # _Destroy_ local development services
 	docker-compose down

@@ -1,0 +1,39 @@
+name: Publish GitHub release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    name: Publish GitHub release
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(sed -n 's/.*Version = "\(.*\)".*/\1/p' version.go)
+          echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get changed files
+        id: files
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Check for config.go diff
+        id: diff
+        run: |
+          FOUND=0
+          for changed_file in ${{ steps.files.outputs.all }}; do
+            if [[ "$changed_file" == "version.go" ]]; then
+              FOUND=1
+            fi
+          done
+          echo "diff=$FOUND" >> $GITHUB_OUTPUT
+
+      - name: Create release
+        if: steps.diff.outputs.diff != 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create ${{ steps.version.outputs.release_tag }} --generate-notes

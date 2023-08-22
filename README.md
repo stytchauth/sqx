@@ -1,6 +1,6 @@
 # Squirrel Xtended 
 Squirrel Xtended (`sqx`) is a convenient library for db interactions in go. It provides nice bindings around:
-- [Masterminds/squirrel](Masterminds/squirrel) - for fluent SQL generation
+- [Masterminds/squirrel](https://github.com/Masterminds/squirrel) - for fluent SQL generation
 - [blockloop/scan](https://github.com/blockloop/scan) - for data marshalling
 - [Go 1.18 Generics](https://go.dev/doc/tutorial/generics)
 
@@ -58,7 +58,7 @@ Have multiple database handles or loggers? You can override them later.
 ```golang
 func GetUsersFromReadReplica(ctx context.Context, filter GetUserFilter) ([]User, error) {
 	return sqx.Read[User]().
-		WithDatabase(replicaDB)
+		WithDatabase(replicaDB).
 		Select("*").
 		From("users").
 		Where(sqx.ToClause(filter)).

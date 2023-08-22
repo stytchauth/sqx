@@ -1,0 +1,29 @@
+name: Check links in README.md
+
+on:
+  schedule:
+    # Every 4 hours at X:00
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    name: Check links in README.md
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get links
+        run: |
+          grep -Eo "\[[^][]+]\((https?://stytch.com[^()]+)\)" README.md | grep -Eo "https:[^)]*" | sort -u > links.txt
+          found_bad=0
+          for link in $(cat links.txt); do
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" $link)
+            if [[ "$status_code" != "200" ]]; then
+              echo "$link -> $status_code"
+              found_bad=1
+            fi
+          done
+          if [[ $found_bad == 1 ]]; then
+            exit 1
+          fi
