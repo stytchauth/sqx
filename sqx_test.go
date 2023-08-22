@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/stytchauth/sqx"
 	"log"
 	"strings"
 	"testing"
+
+	"github.com/stytchauth/sqx"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"

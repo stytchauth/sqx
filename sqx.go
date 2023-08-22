@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	sq "github.com/stytchauth/squirrel"
 	"log"
+
+	sq "github.com/stytchauth/squirrel"
 )
 
 type runCtx struct {
