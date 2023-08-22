@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +36,7 @@ func TestToClause(t *testing.T) {
 		IntCol: &[]int{1, 2},
 	}
 	t.Run("Can convert all fields of a struct to a map", func(t *testing.T) {
-		expected := sq.Eq{
+		expected := Eq{
 			"str_col": ptr("i am str"),
 			"int_col": &[]int{1, 2},
 		}
@@ -50,7 +49,7 @@ func TestToClause(t *testing.T) {
 		StrCol: ptr("still a str"),
 	}
 	t.Run("Omits unset fields", func(t *testing.T) {
-		expected := sq.Eq{
+		expected := Eq{
 			"str_col": ptr("still a str"),
 		}
 
@@ -59,13 +58,13 @@ func TestToClause(t *testing.T) {
 	})
 
 	t.Run("Returns empty on nil input", func(t *testing.T) {
-		expected := sq.Eq{}
+		expected := Eq{}
 
 		clause := ToClause(nil)
 		assert.Equal(t, expected, clause.contents)
 	})
 	t.Run("Returns empty on empty output", func(t *testing.T) {
-		expected := sq.Eq{}
+		expected := Eq{}
 
 		clause := ToClause(&thingyGetFilter{})
 		assert.Equal(t, expected, clause.contents)
@@ -77,7 +76,7 @@ func TestToClauseAlias(t *testing.T) {
 		StrCol: ptr("i am str"),
 		IntCol: &[]int{100},
 	}
-	expected := sq.Eq{
+	expected := Eq{
 		"table.str_col": ptr("i am str"),
 		"table.int_col": &[]int{100},
 	}

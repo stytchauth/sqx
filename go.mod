@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/blockloop/scan v1.3.0
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/stretchr/testify v1.8.4
 )
 

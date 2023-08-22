@@ -23,7 +23,7 @@ func (b DeleteBuilder) Prefix(sql string, args ...interface{}) DeleteBuilder {
 }
 
 // PrefixExpr adds an expression to the very beginning of the query
-func (b DeleteBuilder) PrefixExpr(expr sq.Sqlizer) DeleteBuilder {
+func (b DeleteBuilder) PrefixExpr(expr Sqlizer) DeleteBuilder {
 	return b.withBuilder(b.builder.PrefixExpr(expr))
 }
 

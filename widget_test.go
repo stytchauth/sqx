@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/stytchauth/sqx"
 )
 
@@ -59,7 +58,7 @@ func (d *dbWidget) Update(ctx context.Context, widgetID string, f *widgetUpdateF
 	}
 	return sqx.Write(ctx).
 		Update("sqx_widgets_test").
-		Where(sq.Eq{"widget_id": widgetID}).
+		Where(sqx.Eq{"widget_id": widgetID}).
 		SetMap(f.toSetMap()).
 		Debug().
 		Do()
@@ -69,7 +68,7 @@ func (d *dbWidget) GetByID(ctx context.Context, widgetID string) (*Widget, error
 	return sqx.Read[Widget](ctx).
 		Select("*").
 		From("sqx_widgets_test").
-		Where(sq.Eq{"widget_id": widgetID}).
+		Where(sqx.Eq{"widget_id": widgetID}).
 		Debug().
 		One()
 }
