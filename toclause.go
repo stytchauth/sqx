@@ -2,7 +2,7 @@ package sqx
 
 import (
 	sq "github.com/Masterminds/squirrel"
-	scan "github.com/blockloop/scan/v2"
+	scan "github.com/blockloop/scan"
 )
 
 type Clause struct {

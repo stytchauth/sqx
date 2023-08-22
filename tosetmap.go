@@ -3,7 +3,7 @@ package sqx
 import (
 	"reflect"
 
-	scan "github.com/blockloop/scan/v2"
+	scan "github.com/blockloop/scan"
 )
 
 // ToSetMap converts a struct into a map[string]any based on the presence of "db" struct tags
