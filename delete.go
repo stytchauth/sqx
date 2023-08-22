@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/stytchauth/squirrel"
 )
 
 type DeleteBuilder struct {

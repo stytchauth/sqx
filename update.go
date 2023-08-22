@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/stytchauth/squirrel"
 )
 
 type UpdateBuilder struct {

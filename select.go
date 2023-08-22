@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/blockloop/scan"
+	sq "github.com/stytchauth/squirrel"
 )
 
 // SelectBuilder wraps squirrel.SelectBuilder and adds syntactic sugar for

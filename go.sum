@@ -23,8 +23,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/stytchauth/squirrel v1.5.3-0.20230822200523-e6f6b69e7103 h1:+mxz7KrEIMA6VwCp4O/XPysmjlji1N7jEmit0zXj+GI=
-github.com/stytchauth/squirrel v1.5.3-0.20230822200523-e6f6b69e7103/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA400rg+riTZj10=
+github.com/stytchauth/squirrel v1.5.3-0.20230822204145-fbce445169d2 h1:OYNcKpyKrykU3DKbKLQ8Ck+hxXyZLFzH13reR3g3Ep8=
+github.com/stytchauth/squirrel v1.5.3-0.20230822204145-fbce445169d2/go.mod h1:veUrPPPLlhtyyEhl4BGqYxdmymsNq2gthNOJmrSptW8=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 h1:qIbj1fsPNlZgppZ+VLlY7N33q108Sa+fhmuc+sWQYwY=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/stytchauth/squirrel"
 	"log"
 )
 
