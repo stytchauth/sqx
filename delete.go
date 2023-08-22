@@ -2,6 +2,7 @@ package sqx
 
 import (
 	"context"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -68,6 +69,9 @@ func (b DeleteBuilder) Suffix(sql string, args ...interface{}) DeleteBuilder {
 func (b DeleteBuilder) Do() error {
 	if b.err != nil {
 		return b.err
+	}
+	if b.queryable == nil {
+		return fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
 	}
 	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 	return err

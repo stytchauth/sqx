@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"log"
 )
 
 type runCtx struct {
@@ -32,7 +33,7 @@ func Write(ctx context.Context) runCtx {
 }
 
 func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: defaultQueryable, ctx: rc.ctx}
+	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
 }
 
 func (rc typedRunCtx[T]) FromSquirrelSelect(sel sq.SelectBuilder) SelectBuilder[T] {
@@ -67,5 +68,11 @@ func (t runShim) Query(_ string, _ ...interface{}) (*sql.Rows, error) {
 
 func debug(logger Logger, builder interface{ ToSql() (string, []any, error) }) {
 	query, args, err := builder.ToSql()
-	logger.Printf("[DEBUG] %+v\n", map[string]any{"sql": query, "args": args, "error": err})
+	if logger != nil {
+		logger.Printf("[DEBUG] %+v\n", map[string]any{"sql": query, "args": args, "error": err})
+	} else {
+		log.Printf("missing default logger in SQX")
+		log.Printf("[DEBUG] %+v\n", map[string]any{"sql": query, "args": args, "error": err})
+	}
+
 }

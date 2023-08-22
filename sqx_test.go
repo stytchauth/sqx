@@ -4,79 +4,36 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
-	"reflect"
+	"github.com/stytchauth/sqx"
+	"log"
 	"strings"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
-type dbConfig struct {
-	ServerName string `env:"TEST_DB_SERVER_NAME"`
-	User       string `env:"TEST_DB_USER"`
-	Password   string `env:"TEST_DB_PASSWORD"`
-	Name       string `env:"TEST_DB_NAME"`
+func init() {
+	sqx.SetDefaultLogger(sqx.MakeLogger(log.Printf))
 }
 
-func loadDBConfig(t *testing.T) (*dbConfig, error) {
-	conf := new(dbConfig)
-	var missing []string
-
-	// conf must be a pointer type for this to be able to set values.
-	vv := reflect.ValueOf(conf).Elem()
-	tt := vv.Type()
-	for i := 0; i < tt.NumField(); i++ {
-		f := tt.Field(i)
-
-		name := f.Tag.Get("env")
-		if name == "" {
-			continue
-		}
-
-		dest := vv.FieldByIndex(f.Index)
-		val := os.Getenv(name)
-		if val == "" {
-			missing = append(missing, name)
-		}
-		dest.SetString(val)
-	}
-
-	if len(missing) > 0 {
-		return nil, fmt.Errorf("missing environment variables: %s", strings.Join(missing, ", "))
-	}
-	return conf, nil
-}
-
-func CreateDatabase(c *dbConfig) (*sql.DB, error) {
-	connectionString := fmt.Sprintf(
-		"%s:%s@tcp(%s)/%s?parseTime=true",
-		c.User,
-		c.Password,
-		c.ServerName,
-		c.Name,
-	)
-	return sql.Open("mysql", connectionString)
+func CreateDatabase() (*sql.DB, error) {
+	return sql.Open("mysql", "sqx:sqx@tcp(localhost:4306)/sqx?parseTime=true")
 }
 
 // DB opens a new database connection for the duration of the test.
 //
 // If you don't need to persist data (e.g., for chained-request testing), use Tx instead.
 func DB(t *testing.T) *sql.DB {
-	conf, err := loadDBConfig(t)
-	if err != nil {
-		t.Fatalf("Open database connection: %s", err.Error())
-	}
-
-	db, err := CreateDatabase(conf)
+	db, err := CreateDatabase()
 	if err != nil {
 		t.Fatalf("Create database: %s", err.Error())
 	}
 
+	sqx.SetDefaultQueryable(db)
 	t.Cleanup(func() {
+		sqx.SetDefaultQueryable(nil)
 		if err := db.Close(); err != nil {
 			t.Logf("Close DB connection: %s", err.Error())
 		}
@@ -93,9 +50,12 @@ func Tx(t *testing.T) *sql.Tx {
 
 	tx, err := DB(t).BeginTx(ctx, nil)
 	if err != nil {
-		t.Fatalf("DB connection failed: %s", err.Error())
+		t.Fatalf("DB connection failed: %s. Did you remember to run make services?", err.Error())
 	}
+
+	sqx.SetDefaultQueryable(tx)
 	t.Cleanup(func() {
+		sqx.SetDefaultQueryable(nil)
 		if err := tx.Rollback(); err != nil {
 			t.Logf("Could not roll back transaction: %s", err.Error())
 			// Don't fail the test here, because it's (probably) not the test's fault. Although

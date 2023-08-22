@@ -8,6 +8,18 @@ func SetDefaultLogger(logger Logger) {
 	defaultLogger = logger
 }
 
+type logger struct {
+	printf func(format string, v ...any)
+}
+
+func (l logger) Printf(format string, v ...any) {
+	l.printf(format, v...)
+}
+
+func MakeLogger(printf func(format string, v ...any)) Logger {
+	return logger{printf: printf}
+}
+
 type Logger interface {
 	// Printf prints output using the provided logger
 	// Arguments are passed in the style of fmt.Printf.
