@@ -34,7 +34,7 @@ func newDBWidget(db sqx.Queryable) dbWidget {
 }
 
 func (d *dbWidget) Create(ctx context.Context, w *Widget) error {
-	return sqx.Write(d.db, ctx).
+	return sqx.Write(ctx).
 		Insert("sqx_widgets_test").
 		SetMap(w.toSetMap()).
 		Debug().
@@ -57,7 +57,7 @@ func (d *dbWidget) Update(ctx context.Context, widgetID string, f *widgetUpdateF
 	if !sqx.ContainsUpdates(f) {
 		return nil
 	}
-	return sqx.Write(d.db, ctx).
+	return sqx.Write(ctx).
 		Update("sqx_widgets_test").
 		Where(sq.Eq{"widget_id": widgetID}).
 		SetMap(f.toSetMap()).
@@ -66,7 +66,7 @@ func (d *dbWidget) Update(ctx context.Context, widgetID string, f *widgetUpdateF
 }
 
 func (d *dbWidget) GetByID(ctx context.Context, widgetID string) (*Widget, error) {
-	return sqx.Read[Widget](d.db, ctx).
+	return sqx.Read[Widget](ctx).
 		Select("*").
 		From("sqx_widgets_test").
 		Where(sq.Eq{"widget_id": widgetID}).
@@ -79,7 +79,7 @@ type widgetGetFilter struct {
 }
 
 func (d *dbWidget) Get(ctx context.Context, f *widgetGetFilter) ([]Widget, error) {
-	return sqx.Read[Widget](d.db, ctx).
+	return sqx.Read[Widget](ctx).
 		Select("*").
 		From("sqx_widgets_test").
 		Where(sqx.ToClause(f)).
@@ -88,7 +88,7 @@ func (d *dbWidget) Get(ctx context.Context, f *widgetGetFilter) ([]Widget, error
 }
 
 func (d *dbWidget) GetAll(ctx context.Context) ([]Widget, error) {
-	return sqx.Read[Widget](d.db, ctx).
+	return sqx.Read[Widget](ctx).
 		Select("*").
 		Debug().
 		From("sqx_widgets_test").

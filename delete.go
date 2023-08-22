@@ -7,10 +7,10 @@ import (
 )
 
 type DeleteBuilder struct {
-	builder sq.DeleteBuilder
-	runner  sq.BaseRunner
-	ctx     context.Context
-	err     error
+	builder   sq.DeleteBuilder
+	queryable Queryable
+	ctx       context.Context
+	err       error
 }
 
 // ============================================
@@ -68,7 +68,7 @@ func (b DeleteBuilder) Do() error {
 	if b.err != nil {
 		return b.err
 	}
-	_, err := b.builder.RunWith(b.runner).ExecContext(b.ctx)
+	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 	return err
 }
 
@@ -78,6 +78,11 @@ func (b DeleteBuilder) Debug() DeleteBuilder {
 	return b
 }
 
+// WithQueryable configures a Queryable for this DeleteBuilder instance
+func (b DeleteBuilder) WithQueryable(queryable Queryable) DeleteBuilder {
+	return DeleteBuilder{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err}
+}
+
 func (b DeleteBuilder) withBuilder(builder sq.DeleteBuilder) DeleteBuilder {
-	return DeleteBuilder{builder: builder, runner: b.runner, ctx: b.ctx, err: b.err}
+	return DeleteBuilder{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err}
 }

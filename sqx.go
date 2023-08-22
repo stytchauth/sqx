@@ -10,8 +10,7 @@ import (
 )
 
 type runCtx struct {
-	runner sq.BaseRunner
-	ctx    context.Context
+	ctx context.Context
 }
 
 // typedRunCtx wraps a generic type + a runCtx, it can be used to create typed Select builders
@@ -20,39 +19,38 @@ type typedRunCtx[T any] struct {
 }
 
 // Read is the entrypoint for creating generic Select builders
-func Read[T any](db Queryable, ctx context.Context) typedRunCtx[T] {
+func Read[T any](ctx context.Context) typedRunCtx[T] {
 	return typedRunCtx[T]{
 		runCtx{
-			runner: runShim{db},
-			ctx:    ctx,
+			ctx: ctx,
 		},
 	}
 }
 
 // Write is the entrypoint for creating sql-extra builders that call ExecCtx
 // and its variants - it does not have a generic b/c Exec cannot return arbitrary data
-func Write(db Queryable, ctx context.Context) runCtx {
-	return runCtx{runner: runShim{db}, ctx: ctx}
+func Write(ctx context.Context) runCtx {
+	return runCtx{ctx: ctx}
 }
 
 func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sq.Select(columns...), runner: rc.runner, ctx: rc.ctx}
+	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: defaultQueryable, ctx: rc.ctx}
 }
 
 func (rc typedRunCtx[T]) FromSquirrelSelect(sel sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sel, runner: rc.runner, ctx: rc.ctx}
+	return SelectBuilder[T]{builder: sel, queryable: defaultQueryable, ctx: rc.ctx}
 }
 
 func (rc runCtx) Update(table string) UpdateBuilder {
-	return UpdateBuilder{builder: sq.Update(table), runner: rc.runner, ctx: rc.ctx}
+	return UpdateBuilder{builder: sq.Update(table), queryable: defaultQueryable, ctx: rc.ctx}
 }
 
 func (rc runCtx) Insert(table string) InsertBuilder {
-	return InsertBuilder{builder: sq.Insert(table), runner: rc.runner, ctx: rc.ctx}
+	return InsertBuilder{builder: sq.Insert(table), queryable: defaultQueryable, ctx: rc.ctx}
 }
 
 func (rc runCtx) Delete(table string) DeleteBuilder {
-	return DeleteBuilder{builder: sq.Delete(table), runner: rc.runner, ctx: rc.ctx}
+	return DeleteBuilder{builder: sq.Delete(table), queryable: defaultQueryable, ctx: rc.ctx}
 }
 
 // runShim maps a Queryable to the squirrel.BaseRunner interface
