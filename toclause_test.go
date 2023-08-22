@@ -7,15 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ptr[T any](v T) *T { return &v }
-
 func ExampleToClause() {
 	type filter struct {
 		Value  *string   `db:"first_col"`
 		Values *[]string `db:"second_col"`
 	}
 	clause := ToClause(&filter{
-		Value:  ptr("example"),
+		Value:  Ptr("example"),
 		Values: &[]string{"a", "b"},
 	})
 	sql, args, _ := clause.ToSql()
@@ -32,12 +30,12 @@ type thingyGetFilter struct {
 
 func TestToClause(t *testing.T) {
 	filter := thingyGetFilter{
-		StrCol: ptr("i am str"),
+		StrCol: Ptr("i am str"),
 		IntCol: &[]int{1, 2},
 	}
 	t.Run("Can convert all fields of a struct to a map", func(t *testing.T) {
 		expected := Eq{
-			"str_col": ptr("i am str"),
+			"str_col": Ptr("i am str"),
 			"int_col": &[]int{1, 2},
 		}
 
@@ -46,11 +44,11 @@ func TestToClause(t *testing.T) {
 	})
 
 	filter2 := thingyGetFilter{
-		StrCol: ptr("still a str"),
+		StrCol: Ptr("still a str"),
 	}
 	t.Run("Omits unset fields", func(t *testing.T) {
 		expected := Eq{
-			"str_col": ptr("still a str"),
+			"str_col": Ptr("still a str"),
 		}
 
 		clause := ToClause(&filter2)
@@ -73,11 +71,11 @@ func TestToClause(t *testing.T) {
 
 func TestToClauseAlias(t *testing.T) {
 	f1 := thingyGetFilter{
-		StrCol: ptr("i am str"),
+		StrCol: Ptr("i am str"),
 		IntCol: &[]int{100},
 	}
 	expected := Eq{
-		"table.str_col": ptr("i am str"),
+		"table.str_col": Ptr("i am str"),
 		"table.int_col": &[]int{100},
 	}
 

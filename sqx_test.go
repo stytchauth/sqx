@@ -182,7 +182,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("Returns an error when SetMap fails", func(t *testing.T) {
 		dbWidget := newDBWidget(setupTestWidgetsTable(t))
 		// Empty update should not work
-		err := dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{Status: ptr("Greasy")})
+		err := dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{Status: sqx.Ptr("Greasy")})
 		assert.EqualError(t, err, "widgets cannot be greasy")
 	})
 

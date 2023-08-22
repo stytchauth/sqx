@@ -22,7 +22,7 @@ func ExampleToSetMap() {
 		Values *[]string `db:"second_col"`
 	}
 	setMap, _ := sqx.ToSetMap(&filter{
-		Value:  ptr("example"),
+		Value:  sqx.Ptr("example"),
 		Values: &[]string{"a", "b"},
 	})
 
@@ -35,13 +35,13 @@ func ExampleToSetMap() {
 
 func TestToSetMap(t *testing.T) {
 	filter := thingyUpdateFilter{
-		StrCol: ptr("i am str"),
-		IntCol: ptr(100),
+		StrCol: sqx.Ptr("i am str"),
+		IntCol: sqx.Ptr(100),
 	}
 	t.Run("Can convert all fields of a struct to a map", func(t *testing.T) {
 		expected := map[string]any{
-			"str_col": ptr("i am str"),
-			"int_col": ptr(100),
+			"str_col": sqx.Ptr("i am str"),
+			"int_col": sqx.Ptr(100),
 		}
 
 		setMap, err := sqx.ToSetMap(&filter)
@@ -50,11 +50,11 @@ func TestToSetMap(t *testing.T) {
 	})
 
 	filter2 := thingyUpdateFilter{
-		StrCol: ptr("still a str"),
+		StrCol: sqx.Ptr("still a str"),
 	}
 	t.Run("Omits specific fields when asked", func(t *testing.T) {
 		expected := map[string]any{
-			"str_col": ptr("still a str"),
+			"str_col": sqx.Ptr("still a str"),
 		}
 
 		setMap, err := sqx.ToSetMap(&filter2, "str_ptr_col_null", "int_col")
@@ -83,12 +83,12 @@ func TestToSetMap(t *testing.T) {
 
 func TestToSetMapAlias(t *testing.T) {
 	f1 := thingyUpdateFilter{
-		StrCol: ptr("i am str"),
-		IntCol: ptr(100),
+		StrCol: sqx.Ptr("i am str"),
+		IntCol: sqx.Ptr(100),
 	}
 	expected := map[string]any{
-		"table.str_col": ptr("i am str"),
-		"table.int_col": ptr(100),
+		"table.str_col": sqx.Ptr("i am str"),
+		"table.int_col": sqx.Ptr(100),
 	}
 
 	setMap, err := sqx.ToSetMapAlias("table", &f1)
