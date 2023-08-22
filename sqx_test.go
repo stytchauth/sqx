@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stytchauth/sqx"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -84,16 +85,12 @@ func setupTestWidgetsTable(t *testing.T) *sql.Tx {
 	return db
 }
 
-var w1 = Widget{
-	ID:      "widget_1",
-	Status:  "great",
-	Enabled: true,
-}
-
-var w2 = Widget{
-	ID:      "widget_1",
-	Status:  "fine",
-	Enabled: true,
+func newWidget(status string) Widget {
+	return Widget{
+		ID:      uuid.New().String(),
+		Status:  status,
+		Enabled: true,
+	}
 }
 
 func TestRead(t *testing.T) {
@@ -101,8 +98,11 @@ func TestRead(t *testing.T) {
 	dbWidget := newDBWidget()
 	ctx := context.Background()
 
-	assert.NoError(t, dbWidget.Create(ctx, &w1))
-	assert.NoError(t, dbWidget.Create(ctx, &w2))
+	w1 := newWidget("great")
+	w2 := newWidget("fine")
+
+	require.NoError(t, dbWidget.Create(ctx, &w1))
+	require.NoError(t, dbWidget.Create(ctx, &w2))
 
 	t.Run("Can read a single widget", func(t *testing.T) {
 		w1db, err := dbWidget.GetByID(ctx, w1.ID)
@@ -113,7 +113,7 @@ func TestRead(t *testing.T) {
 	t.Run("Can read multiple widgets", func(t *testing.T) {
 		widgets, err := dbWidget.GetAll(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, []Widget{w1, w2}, widgets)
+		assert.ElementsMatch(t, []Widget{w1, w2}, widgets)
 	})
 
 	t.Run("Can read multiple widgets using a filter", func(t *testing.T) {
@@ -121,7 +121,7 @@ func TestRead(t *testing.T) {
 			WidgetID: &[]string{w1.ID, w2.ID},
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, []Widget{w1, w2}, widgets)
+		assert.ElementsMatch(t, []Widget{w1, w2}, widgets)
 	})
 
 	t.Run("Bubbles up errors from the DB exec", func(t *testing.T) {
@@ -129,10 +129,22 @@ func TestRead(t *testing.T) {
 		assert.EqualError(t, sql.ErrNoRows, err.Error())
 		assert.Nil(t, w1db)
 	})
+
+	t.Run("Raises error when too many rows returned in OneStrict", func(t *testing.T) {
+		w3 := newWidget("alright")
+		w3.ID = w1.ID
+		require.NoError(t, dbWidget.Create(ctx, &w3))
+
+		expected := sqx.ErrTooManyRows{Expected: 1, Actual: 2}
+		_, err := dbWidget.GetByID(ctx, w1.ID)
+		assert.EqualError(t, expected, err.Error())
+	})
 }
 
 func TestInsert(t *testing.T) {
 	ctx := context.Background()
+
+	w1 := newWidget("great")
 
 	// The happy path cases are already tested in TestRead
 	// here are only failure cases!
@@ -158,10 +170,12 @@ func TestUpdate(t *testing.T) {
 	ctx := context.Background()
 	status := "excellent"
 
+	w1 := newWidget("great")
+
 	t.Run("Can update a row as expected", func(t *testing.T) {
 		setupTestWidgetsTable(t)
 		dbWidget := newDBWidget()
-		assert.NoError(t, dbWidget.Create(ctx, &w1))
+		require.NoError(t, dbWidget.Create(ctx, &w1))
 		assert.NoError(t, dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{
 			Status: &status,
 		}))
