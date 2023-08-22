@@ -13,51 +13,82 @@ type InsertBuilder struct {
 	err     error
 }
 
-func (s InsertBuilder) SetMap(clauses map[string]interface{}, errors ...error) InsertBuilder {
+// ============================================
+// BEGIN: squirrel-InsertBuilder parity section
+// ============================================
+
+// Prefix adds an expression to the beginning of the query
+func (b InsertBuilder) Prefix(sql string, args ...interface{}) InsertBuilder {
+	return b.withBuilder(b.builder.Prefix(sql, args...))
+}
+
+// PrefixExpr adds an expression to the very beginning of the query
+func (b InsertBuilder) PrefixExpr(expr sq.Sqlizer) InsertBuilder {
+	return b.withBuilder(b.builder.PrefixExpr(expr))
+}
+
+// Options adds keyword options before the INTO clause of the query.
+func (b InsertBuilder) Options(options ...string) InsertBuilder {
+	return b.withBuilder(b.builder.Options(options...))
+}
+
+// Columns adds insert columns to the query.
+func (b InsertBuilder) Columns(columns ...string) InsertBuilder {
+	return b.withBuilder(b.builder.Columns(columns...))
+}
+
+// Values adds a single row's values to the query.
+func (b InsertBuilder) Values(values ...any) InsertBuilder {
+	return b.withBuilder(b.builder.Values(values...))
+}
+
+// Suffix adds an expression to the end of the query
+func (b InsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
+	return b.withBuilder(b.builder.Suffix(sql, args...))
+}
+
+// SuffixExpr adds an expression to the end of the query
+func (b InsertBuilder) SuffixExpr(expr sq.Sqlizer) InsertBuilder {
+	return b.withBuilder(b.builder.SuffixExpr(expr))
+}
+
+// SetMap set columns and values for insert builder from a map of column name and value
+// note that it will reset all previous columns and values was set if any
+func (b InsertBuilder) SetMap(clauses map[string]interface{}, errors ...error) InsertBuilder {
 	for _, err := range errors {
 		if err != nil {
-			return s.withError(err)
+			return b.withError(err)
 		}
 	}
-	return s.withBuilder(s.builder.SetMap(clauses))
+	return b.withBuilder(b.builder.SetMap(clauses))
 }
 
-func (s InsertBuilder) Columns(columns ...string) InsertBuilder {
-	return s.withBuilder(s.builder.Columns(columns...))
-}
+// ==========================================
+// END: squirrel-InsertBuilder parity section
+// ==========================================
 
-func (s InsertBuilder) Values(values ...any) InsertBuilder {
-	return s.withBuilder(s.builder.Values(values...))
-}
-
-func (s InsertBuilder) Suffix(sql string, args ...any) InsertBuilder {
-	return s.withBuilder(s.builder.Suffix(sql, args...))
-}
-
-func (s InsertBuilder) SuffixExpr(expr sq.Sqlizer) InsertBuilder {
-	return s.withBuilder(s.builder.SuffixExpr(expr))
-}
-
-func (s InsertBuilder) Do() error {
-	if s.err != nil {
-		return s.err
+// Do executes the InsertBuilder
+func (b InsertBuilder) Do() error {
+	if b.err != nil {
+		return b.err
 	}
-	_, err := s.builder.RunWith(s.runner).ExecContext(s.ctx)
+	_, err := b.builder.RunWith(b.runner).ExecContext(b.ctx)
 	return err
 }
 
-func (s InsertBuilder) Debug() InsertBuilder {
-	debug(s.ctx, s.builder)
-	return s
+// Debug prints the InsertBuilder state out to the provided logger
+func (b InsertBuilder) Debug() InsertBuilder {
+	debug(b.ctx, b.builder)
+	return b
 }
 
-func (s InsertBuilder) withError(err error) InsertBuilder {
-	if s.err != nil {
-		return s
+func (b InsertBuilder) withError(err error) InsertBuilder {
+	if b.err != nil {
+		return b
 	}
-	return InsertBuilder{builder: s.builder, runner: s.runner, ctx: s.ctx, err: err}
+	return InsertBuilder{builder: b.builder, runner: b.runner, ctx: b.ctx, err: err}
 }
 
-func (s InsertBuilder) withBuilder(builder sq.InsertBuilder) InsertBuilder {
-	return InsertBuilder{builder: builder, runner: s.runner, ctx: s.ctx, err: s.err}
+func (b InsertBuilder) withBuilder(builder sq.InsertBuilder) InsertBuilder {
+	return InsertBuilder{builder: builder, runner: b.runner, ctx: b.ctx, err: b.err}
 }

@@ -15,6 +15,10 @@ type UpdateBuilder struct {
 	hasChanges bool
 }
 
+// ============================================
+// BEGIN: squirrel-UpdateBuilder parity section
+// ============================================
+
 // Prefix adds an expression to the beginning of the query
 func (b UpdateBuilder) Prefix(sql string, args ...interface{}) UpdateBuilder {
 	return b.withBuilder(b.builder.Prefix(sql, args...))
@@ -79,11 +83,9 @@ func (b UpdateBuilder) SuffixExpr(expr sq.Sqlizer) UpdateBuilder {
 	return b.withBuilder(b.builder.SuffixExpr(expr))
 }
 
-// Debug prints the UpdateBuilder state out to the provided logger
-func (b UpdateBuilder) Debug() UpdateBuilder {
-	debug(b.ctx, b.builder)
-	return b
-}
+// ==========================================
+// END: squirrel-UpdateBuilder parity section
+// ==========================================
 
 // Do executes the UpdateBuilder
 func (b UpdateBuilder) Do() error {
@@ -96,6 +98,12 @@ func (b UpdateBuilder) Do() error {
 	}
 	_, err := b.builder.RunWith(b.runner).ExecContext(b.ctx)
 	return err
+}
+
+// Debug prints the UpdateBuilder state out to the provided logger
+func (b UpdateBuilder) Debug() UpdateBuilder {
+	debug(b.ctx, b.builder)
+	return b
 }
 
 func (b UpdateBuilder) withError(err error) UpdateBuilder {
