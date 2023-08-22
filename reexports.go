@@ -1,6 +1,6 @@
 package sqx
 
-import sq "github.com/Masterminds/squirrel"
+import sq "github.com/stytchauth/squirrel"
 
 type And = sq.And
 type Eq = sq.Eq
