@@ -14,7 +14,7 @@ func ExampleContainsUpdates() {
 		Values *[]string `db:"second_col"`
 	}
 	first := sqx.ContainsUpdates(&filter{
-		Value:  ptr("example"),
+		Value:  sqx.Ptr("example"),
 		Values: &[]string{"a", "b"},
 	})
 	second := sqx.ContainsUpdates(&filter{ /* Empty! */ })
@@ -33,8 +33,8 @@ func TestContainsUpdates(t *testing.T) {
 
 	t.Run("Returns true when fields are non-nil", func(t *testing.T) {
 		filter := fooUpdateFilter{
-			StrCol: ptr("i am str"),
-			IntCol: ptr(1),
+			StrCol: sqx.Ptr("i am str"),
+			IntCol: sqx.Ptr(1),
 		}
 		assert.True(t, sqx.ContainsUpdates(&filter))
 	})
