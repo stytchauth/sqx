@@ -204,8 +204,12 @@ func (b SelectBuilder[T]) one(strict bool) (*T, error) {
 		return nil, sql.ErrNoRows
 	}
 
-	if strict && len(dest) > 1 {
-		return nil, ErrTooManyRows{Expected: 1, Actual: len(dest)}
+	if len(dest) > 1 {
+		if strict {
+			return nil, ErrTooManyRows{Expected: 1, Actual: len(dest)}
+		} else if b.logger != nil {
+			b.logger.Printf("[WARN] sqx: in call to One, got %d rows, returning first result", len(dest))
+		}
 	}
 
 	return &dest[0], nil

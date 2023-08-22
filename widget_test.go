@@ -63,7 +63,7 @@ func (d *dbWidget) GetByID(ctx context.Context, widgetID string) (*Widget, error
 		Select("*").
 		From("sqx_widgets_test").
 		Where(sqx.Eq{"widget_id": widgetID}).
-		One()
+		OneStrict()
 }
 
 type widgetGetFilter struct {
