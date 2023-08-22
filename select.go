@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/blockloop/scan"
+	"github.com/blockloop/scan/v2"
 	sq "github.com/stytchauth/squirrel"
 )
 

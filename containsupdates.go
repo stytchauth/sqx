@@ -1,7 +1,7 @@
 package sqx
 
 import (
-	scan "github.com/blockloop/scan"
+	scan "github.com/blockloop/scan/v2"
 )
 
 // ContainsUpdates returns true if an update filter is nonempty.
