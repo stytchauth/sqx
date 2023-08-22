@@ -5,13 +5,18 @@ import (
 	"database/sql"
 )
 
+var defaultQueryable Queryable = nil
+
+// SetDefaultQueryable sets the DB query handler that should be used to run requests.
+// If you need to change the DB query handler for a specific request, use WithQueryable
+func SetDefaultQueryable(queryable Queryable) {
+	defaultQueryable = queryable
+}
+
 // Queryable is an interface wrapping common database access methods.
 //
 // This is useful in cases where it doesn't matter whether the database handle is the root handle
-// (db.DBConnector) or an already-open transaction (*sql.Tx).
-//
-// This does not contain BeginTx because we don't (yet) support nested transactions or savepoints.
-// Implementing that is also non-trivial. See Go issue 7898 for discussion.
+// (*sql.DB) or an already-open transaction (*sql.Tx).
 type Queryable interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)

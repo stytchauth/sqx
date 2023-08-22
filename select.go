@@ -11,10 +11,10 @@ import (
 // SelectBuilder[T]wraps squirrel.SelectBuilder and adds syntactic sugar for
 // common usage patterns
 type SelectBuilder[T any] struct {
-	builder sq.SelectBuilder
-	runner  sq.BaseRunner
-	ctx     context.Context
-	err     error
+	builder   sq.SelectBuilder
+	queryable Queryable
+	ctx       context.Context
+	err       error
 }
 
 // ============================================
@@ -233,23 +233,28 @@ func (b SelectBuilder[T]) query() (*sql.Rows, error) {
 	if b.err != nil {
 		return nil, b.err
 	}
-	if b.runner == nil {
-		return nil, errors.New("no runner")
+	if b.queryable == nil {
+		return nil, errors.New("no queryable")
 	}
 	if b.ctx == nil {
 		return nil, errors.New("no ctx")
 	}
-	return b.builder.RunWith(b.runner).QueryContext(b.ctx)
+	return b.builder.RunWith(runShim{b.queryable}).QueryContext(b.ctx)
 }
 func (b SelectBuilder[T]) Debug() SelectBuilder[T] {
 	debug(b.ctx, b.builder)
 	return b
 }
 
+// WithQueryable configures a Queryable for this SelectBuilder instance
+func (b SelectBuilder[T]) WithQueryable(queryable Queryable) SelectBuilder[T] {
+	return SelectBuilder[T]{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err}
+}
+
 func (b SelectBuilder[T]) withBuilder(builder sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: builder, runner: b.runner, ctx: b.ctx, err: b.err}
+	return SelectBuilder[T]{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err}
 }
 
 func (b SelectBuilder[T]) withError(err error) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: b.builder, runner: b.runner, ctx: b.ctx, err: err}
+	return SelectBuilder[T]{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: err}
 }

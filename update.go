@@ -9,7 +9,7 @@ import (
 
 type UpdateBuilder struct {
 	builder    sq.UpdateBuilder
-	runner     sq.BaseRunner
+	queryable  Queryable
 	ctx        context.Context
 	err        error
 	hasChanges bool
@@ -96,7 +96,7 @@ func (b UpdateBuilder) Do() error {
 		log.Println("Skipping write to DB - no updates set")
 		return nil
 	}
-	_, err := b.builder.RunWith(b.runner).ExecContext(b.ctx)
+	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 	return err
 }
 
@@ -106,17 +106,22 @@ func (b UpdateBuilder) Debug() UpdateBuilder {
 	return b
 }
 
+// WithQueryable configures a Queryable for this UpdateBuilder instance
+func (b UpdateBuilder) WithQueryable(queryable Queryable) UpdateBuilder {
+	return UpdateBuilder{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
+}
+
 func (b UpdateBuilder) withError(err error) UpdateBuilder {
 	if b.err != nil {
 		return b
 	}
-	return UpdateBuilder{builder: b.builder, runner: b.runner, ctx: b.ctx, err: err, hasChanges: b.hasChanges}
+	return UpdateBuilder{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: err, hasChanges: b.hasChanges}
 }
 
 func (b UpdateBuilder) withBuilder(builder sq.UpdateBuilder) UpdateBuilder {
-	return UpdateBuilder{builder: builder, runner: b.runner, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
+	return UpdateBuilder{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
 }
 
 func (b UpdateBuilder) withChanges() UpdateBuilder {
-	return UpdateBuilder{builder: b.builder, runner: b.runner, ctx: b.ctx, err: b.err, hasChanges: true}
+	return UpdateBuilder{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: b.err, hasChanges: true}
 }

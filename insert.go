@@ -7,10 +7,10 @@ import (
 )
 
 type InsertBuilder struct {
-	builder sq.InsertBuilder
-	runner  sq.BaseRunner
-	ctx     context.Context
-	err     error
+	builder   sq.InsertBuilder
+	queryable Queryable
+	ctx       context.Context
+	err       error
 }
 
 // ============================================
@@ -72,7 +72,7 @@ func (b InsertBuilder) Do() error {
 	if b.err != nil {
 		return b.err
 	}
-	_, err := b.builder.RunWith(b.runner).ExecContext(b.ctx)
+	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 	return err
 }
 
@@ -82,13 +82,18 @@ func (b InsertBuilder) Debug() InsertBuilder {
 	return b
 }
 
+// WithQueryable configures a Queryable for this InsertBuilder instance
+func (b InsertBuilder) WithQueryable(queryable Queryable) InsertBuilder {
+	return InsertBuilder{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err}
+}
+
 func (b InsertBuilder) withError(err error) InsertBuilder {
 	if b.err != nil {
 		return b
 	}
-	return InsertBuilder{builder: b.builder, runner: b.runner, ctx: b.ctx, err: err}
+	return InsertBuilder{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: err}
 }
 
 func (b InsertBuilder) withBuilder(builder sq.InsertBuilder) InsertBuilder {
-	return InsertBuilder{builder: builder, runner: b.runner, ctx: b.ctx, err: b.err}
+	return InsertBuilder{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err}
 }
