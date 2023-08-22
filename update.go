@@ -31,6 +31,36 @@ func (b UpdateBuilder) PrefixExpr(expr Sqlizer) UpdateBuilder {
 	return b.withBuilder(b.builder.PrefixExpr(expr))
 }
 
+// JoinClause adds a join clause to the query.
+func (b UpdateBuilder) JoinClause(pred interface{}, args ...interface{}) UpdateBuilder {
+	return b.withBuilder(b.builder.JoinClause(pred, args...))
+}
+
+// Join adds a JOIN clause to the query.
+func (b UpdateBuilder) Join(join string, rest ...interface{}) UpdateBuilder {
+	return b.withBuilder(b.builder.Join(join, rest...))
+}
+
+// LeftJoin adds a LEFT JOIN clause to the query.
+func (b UpdateBuilder) LeftJoin(join string, rest ...interface{}) UpdateBuilder {
+	return b.withBuilder(b.builder.LeftJoin(join, rest...))
+}
+
+// RightJoin adds a RIGHT JOIN clause to the query.
+func (b UpdateBuilder) RightJoin(join string, rest ...interface{}) UpdateBuilder {
+	return b.withBuilder(b.builder.RightJoin(join, rest...))
+}
+
+// InnerJoin adds a INNER JOIN clause to the query.
+func (b UpdateBuilder) InnerJoin(join string, rest ...interface{}) UpdateBuilder {
+	return b.withBuilder(b.builder.InnerJoin(join, rest...))
+}
+
+// CrossJoin adds a CROSS JOIN clause to the query.
+func (b UpdateBuilder) CrossJoin(join string, rest ...interface{}) UpdateBuilder {
+	return b.withBuilder(b.builder.CrossJoin(join, rest...))
+}
+
 // Set adds SET clauses to the query.
 func (b UpdateBuilder) Set(column string, value any) UpdateBuilder {
 	return b.
