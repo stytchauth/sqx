@@ -49,7 +49,7 @@ import sqx "github.com/stytchauth/sqx"
 func main() {
 	db := getDatabase()
 	log := getLogger()
-    sqx.SetDatabase(db)
+	sqx.SetDatabase(db)
 	sqx.SetLogger(log)
 }
 ```

@@ -13,6 +13,7 @@ type UpdateBuilder struct {
 	ctx        context.Context
 	err        error
 	hasChanges bool
+	logger     Logger
 }
 
 // ============================================
@@ -102,26 +103,31 @@ func (b UpdateBuilder) Do() error {
 
 // Debug prints the UpdateBuilder state out to the provided logger
 func (b UpdateBuilder) Debug() UpdateBuilder {
-	debug(b.ctx, b.builder)
+	debug(b.logger, b.builder)
 	return b
 }
 
 // WithQueryable configures a Queryable for this UpdateBuilder instance
 func (b UpdateBuilder) WithQueryable(queryable Queryable) UpdateBuilder {
-	return UpdateBuilder{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
+	return UpdateBuilder{builder: b.builder, queryable: queryable, logger: b.logger, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
+}
+
+// WithLogger configures a Queryable for this UpdateBuilder instance
+func (b UpdateBuilder) WithLogger(logger Logger) UpdateBuilder {
+	return UpdateBuilder{builder: b.builder, queryable: b.queryable, logger: logger, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
 }
 
 func (b UpdateBuilder) withError(err error) UpdateBuilder {
 	if b.err != nil {
 		return b
 	}
-	return UpdateBuilder{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: err, hasChanges: b.hasChanges}
+	return UpdateBuilder{builder: b.builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: err, hasChanges: b.hasChanges}
 }
 
 func (b UpdateBuilder) withBuilder(builder sq.UpdateBuilder) UpdateBuilder {
-	return UpdateBuilder{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
+	return UpdateBuilder{builder: builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: b.err, hasChanges: b.hasChanges}
 }
 
 func (b UpdateBuilder) withChanges() UpdateBuilder {
-	return UpdateBuilder{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: b.err, hasChanges: true}
+	return UpdateBuilder{builder: b.builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: b.err, hasChanges: true}
 }
