@@ -9,6 +9,8 @@ Squirrel Xtended (`sqx`) is a convenient library for db interactions in go. It p
 ### Quick Start
 Teach `sqx` where your DB handle and logger are. `sqx` can then be used to create, update, and delete data.
 
+See [Widget Test](./widget_test.go) for an example of a complete data layer built with `sqx`.
+
 ```golang
 package main
 
@@ -62,9 +64,15 @@ func DeleteUser(ctx context.Context, userID string) error {
 ---
 ### Core Concepts
 
+#### Query building
+
+`sqx` is a superset of [Masterminds/squirrel](https://github.com/Masterminds/squirrel) - refer to their docs for information on what query methods are available.
+We will try to add more examples over time - if there is an example you'd love to see, feel free to open an issue or a PR!
+
 #### Reading data
 Call `sqx.Read[T](ctx).Select(columNames...)` to start building a read transaction. When the read transaction is ran, 
-`sqx` will provision an object of type `T` and scan the results into the object. All scanning is handled by [blockloop/scan](https://github.com/blockloop/scan)'s `RowsStrict` method.
+`sqx` will provision an object of type `T` and scan the results into the object. Scanning is accomplished using `db` tags defined on `T`. 
+All scanning is handled by [blockloop/scan](https://github.com/blockloop/scan)'s `RowsStrict` method.
 Read transactions can be ran in several ways:
 
 - `func (b SelectBuilder[T]) One() (*T, error)` - reads a single struct of type `T`. 
@@ -108,7 +116,7 @@ func GetUsersAndProfileData(ctx context.Context, filter GetUserFilter) ([]User, 
 		Select("*").
 		From("users u").
 		Join("pets p ON users.id = pets.user_id")
-		Where(sqx.ToClauseAlias(filter, "u")).
+		Where(sqx.ToClauseAlias("u", filter)).
 		All()
 }
 ```
@@ -198,6 +206,22 @@ func GetAllUsers(ctx context.Context) ([]User, error) {
 		From("users").
 		All()
 }
+```
+
+#### Debugging generated SQL
+Call `.Debug()` at any time to print out the internal state of the query builder
+```golang
+sqx.Read[UserWithPets](ctx).
+    Select("*").
+    From("users u").
+	Debug().
+    Join("pets p ON users.id = pets.user_id").
+    Where(sqx.ToClauseAlias("u", filter)).
+	Debug().
+    All()
+// outputs
+// map[args:[] error:<nil> sql:SELECT * FROM users u]
+// map[args:[poodle] error:<nil> sql:SELECT * FROM users u JOIN pets p ON users.id = pets.user_id WHERE u.breed = ?]
 ```
 
 #### Validating data before inserting

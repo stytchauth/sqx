@@ -97,7 +97,8 @@ var w2 = Widget{
 }
 
 func TestRead(t *testing.T) {
-	dbWidget := newDBWidget(setupTestWidgetsTable(t))
+	setupTestWidgetsTable(t)
+	dbWidget := newDBWidget()
 	ctx := context.Background()
 
 	assert.NoError(t, dbWidget.Create(ctx, &w1))
@@ -117,7 +118,7 @@ func TestRead(t *testing.T) {
 
 	t.Run("Can read multiple widgets using a filter", func(t *testing.T) {
 		widgets, err := dbWidget.Get(ctx, &widgetGetFilter{
-			widgetID: &[]string{w1.ID, w2.ID},
+			WidgetID: &[]string{w1.ID, w2.ID},
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, []Widget{w1, w2}, widgets)
@@ -137,7 +138,8 @@ func TestInsert(t *testing.T) {
 	// here are only failure cases!
 
 	t.Run("Returns an error when SetMap fails", func(t *testing.T) {
-		dbWidget := newDBWidget(setupTestWidgetsTable(t))
+		setupTestWidgetsTable(t)
+		dbWidget := newDBWidget()
 		// Creating an empty widget should not work
 		err := dbWidget.Create(ctx, &Widget{})
 		assert.EqualError(t, fmt.Errorf("missing ID"), err.Error())
@@ -145,8 +147,8 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Returns an error when the insert fails", func(t *testing.T) {
 		// We never call setupTestWidgetsTable in this test
-		db := Tx(t)
-		dbWidgetMissingTable := newDBWidget(db)
+		Tx(t)
+		dbWidgetMissingTable := newDBWidget()
 		err := dbWidgetMissingTable.Create(ctx, &w1)
 		assert.True(t, strings.Contains(err.Error(), "sqx_widgets_test' doesn't exist"))
 	})
@@ -157,7 +159,8 @@ func TestUpdate(t *testing.T) {
 	status := "excellent"
 
 	t.Run("Can update a row as expected", func(t *testing.T) {
-		dbWidget := newDBWidget(setupTestWidgetsTable(t))
+		setupTestWidgetsTable(t)
+		dbWidget := newDBWidget()
 		assert.NoError(t, dbWidget.Create(ctx, &w1))
 		assert.NoError(t, dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{
 			Status: &status,
@@ -173,14 +176,16 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("Does not return an error on no updates", func(t *testing.T) {
-		dbWidget := newDBWidget(setupTestWidgetsTable(t))
+		setupTestWidgetsTable(t)
+		dbWidget := newDBWidget()
 		// Empty update should not work
 		err := dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{})
 		assert.NoError(t, err)
 	})
 
 	t.Run("Returns an error when SetMap fails", func(t *testing.T) {
-		dbWidget := newDBWidget(setupTestWidgetsTable(t))
+		setupTestWidgetsTable(t)
+		dbWidget := newDBWidget()
 		// Empty update should not work
 		err := dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{Status: sqx.Ptr("Greasy")})
 		assert.EqualError(t, err, "widgets cannot be greasy")
@@ -188,9 +193,9 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("Returns an error when the update fails", func(t *testing.T) {
 		// We never call setupTestWidgetsTable in this test
-		db := Tx(t)
+		Tx(t)
 		enabled := false
-		dbWidgetMissingTable := newDBWidget(db)
+		dbWidgetMissingTable := newDBWidget()
 		err := dbWidgetMissingTable.Update(ctx, w1.ID, &widgetUpdateFilter{
 			Enabled: &enabled,
 		})
