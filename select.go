@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/blockloop/scan"
 )
@@ -238,6 +239,9 @@ func (b SelectBuilder[T]) query() (*sql.Rows, error) {
 	}
 	if b.ctx == nil {
 		return nil, errors.New("no ctx")
+	}
+	if b.queryable == nil {
+		return nil, fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
 	}
 	return b.builder.RunWith(runShim{b.queryable}).QueryContext(b.ctx)
 }

@@ -13,3 +13,10 @@ tests test: # Runs unit tests
 lint: # Run the linter and auto-fix issues where possible
 	golangci-lint run --fix
 
+.PHONY: services
+services: # Start local development services (databases, etc.)
+	docker-compose up -d
+
+.PHONY: services-down
+services-down: # _Destroy_ local development services
+	docker-compose down

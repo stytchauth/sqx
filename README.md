@@ -65,3 +65,22 @@ func GetUsersFromReadReplica(ctx context.Context, filter GetUserFilter) ([]User,
 		All(ctx)
 }
 ```
+
+----
+### Contributing
+`sqx` uses `mysql@8.1.0` in a docker file for development and testing. It is hardcoded to run on port `4306`
+
+Start it with
+```bash
+make services
+```
+
+and kill it with
+```bash
+make services-stop
+```
+
+Run all tests with
+```bash
+make tests
+```

@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  mysql:
+    # Required to make the mysql image function on the M1 macs
+    platform: linux/x86_64
+    image: mysql:8.1.0
+    command:
+      # Ensure a consistent timezone for timestamps by running in UTC.
+      - '--default-time-zone=+00:00'
+      # The SQL mode must match the RDS settings in the platform repo. You can also check this by
+      # running `SELECT @@SQL_MODE`.
+      - '--sql-mode=STRICT_TRANS_TABLES,STRICT_ALL_TABLES'
+
+    ports:
+      - "4306:3306"
+    environment:
+      # This is only for local development, so these insecure settings are fine.
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_USER: sqx
+      MYSQL_PASSWORD: sqx
+      MYSQL_DATABASE: sqx

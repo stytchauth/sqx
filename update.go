@@ -2,6 +2,7 @@ package sqx
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
@@ -95,6 +96,9 @@ func (b UpdateBuilder) Do() error {
 	if !b.hasChanges {
 		log.Println("Skipping write to DB - no updates set")
 		return nil
+	}
+	if b.queryable == nil {
+		return fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
 	}
 	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 	return err
