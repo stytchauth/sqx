@@ -67,7 +67,7 @@ func (d *dbWidget) GetByID(ctx context.Context, widgetID string) (*Widget, error
 }
 
 type widgetGetFilter struct {
-	WidgetID *[]string `db:"id"`
+	WidgetID *[]string `db:"widget_id"`
 	Status   *string   `db:"status"`
 }
 
