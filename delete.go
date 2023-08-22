@@ -13,6 +13,10 @@ type DeleteBuilder struct {
 	err     error
 }
 
+// ============================================
+// BEGIN: squirrel-DeleteBuilder parity section
+// ============================================
+
 // Prefix adds an expression to the beginning of the query
 func (b DeleteBuilder) Prefix(sql string, args ...interface{}) DeleteBuilder {
 	return b.withBuilder(b.builder.Prefix(sql, args...))
@@ -54,6 +58,10 @@ func (b DeleteBuilder) Offset(offset uint64) DeleteBuilder {
 func (b DeleteBuilder) Suffix(sql string, args ...interface{}) DeleteBuilder {
 	return b.withBuilder(b.builder.Suffix(sql, args...))
 }
+
+// ==========================================
+// END: squirrel-UpdateBuilder parity section
+// ==========================================
 
 // Do executes the DeleteBuilder
 func (b DeleteBuilder) Do() error {
