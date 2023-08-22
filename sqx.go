@@ -9,7 +9,19 @@ import (
 )
 
 type runCtx struct {
-	ctx context.Context
+	logger    Logger
+	queryable Queryable
+	ctx       context.Context
+}
+
+// WithQueryable configures a Queryable for this ctx instance
+func (rc runCtx) WithQueryable(queryable Queryable) runCtx {
+	return runCtx{queryable: queryable, logger: rc.logger, ctx: rc.ctx}
+}
+
+// WithLogger configures a Logger for this ctx instance
+func (rc runCtx) WithLogger(logger Logger) runCtx {
+	return runCtx{queryable: rc.queryable, logger: logger, ctx: rc.ctx}
 }
 
 // typedRunCtx wraps a generic type + a runCtx, it can be used to create typed Select builders
@@ -17,39 +29,49 @@ type typedRunCtx[T any] struct {
 	runCtx
 }
 
+// WithQueryable configures a Queryable for this ctx instance
+func (rc typedRunCtx[T]) WithQueryable(queryable Queryable) typedRunCtx[T] {
+	return typedRunCtx[T]{runCtx{queryable: queryable, logger: rc.logger, ctx: rc.ctx}}
+}
+
+// WithLogger configures a Logger for this ctx instance
+func (rc typedRunCtx[T]) WithLogger(logger Logger) typedRunCtx[T] {
+	return typedRunCtx[T]{runCtx{queryable: rc.queryable, logger: logger, ctx: rc.ctx}}
+}
+
 // Read is the entrypoint for creating generic Select builders
 func Read[T any](ctx context.Context) typedRunCtx[T] {
-	return typedRunCtx[T]{
-		runCtx{
-			ctx: ctx,
-		},
-	}
+	return typedRunCtx[T]{Write(ctx)}
 }
 
 // Write is the entrypoint for creating sql-extra builders that call ExecCtx
 // and its variants - it does not have a generic b/c Exec cannot return arbitrary data
 func Write(ctx context.Context) runCtx {
-	return runCtx{ctx: ctx}
+	return runCtx{
+		ctx:       ctx,
+		logger:    defaultLogger,
+		queryable: defaultQueryable,
+	}
 }
 
 func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
+	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 func (rc typedRunCtx[T]) FromSquirrelSelect(sel sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sel, queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
+	return SelectBuilder[T]{builder: sel, queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 func (rc runCtx) Update(table string) UpdateBuilder {
-	return UpdateBuilder{builder: sq.Update(table), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
+	return UpdateBuilder{builder: sq.Update(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 func (rc runCtx) Insert(table string) InsertBuilder {
-	return InsertBuilder{builder: sq.Insert(table), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
+	return InsertBuilder{builder: sq.Insert(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 func (rc runCtx) Delete(table string) DeleteBuilder {
-	return DeleteBuilder{builder: sq.Delete(table), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
+	return DeleteBuilder{builder: sq.Delete(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 // runShim maps a Queryable to the squirrel.BaseRunner interface
