@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -38,19 +36,19 @@ func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
 }
 
 func (rc typedRunCtx[T]) FromSquirrelSelect(sel sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sel, queryable: defaultQueryable, ctx: rc.ctx}
+	return SelectBuilder[T]{builder: sel, queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
 }
 
 func (rc runCtx) Update(table string) UpdateBuilder {
-	return UpdateBuilder{builder: sq.Update(table), queryable: defaultQueryable, ctx: rc.ctx}
+	return UpdateBuilder{builder: sq.Update(table), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
 }
 
 func (rc runCtx) Insert(table string) InsertBuilder {
-	return InsertBuilder{builder: sq.Insert(table), queryable: defaultQueryable, ctx: rc.ctx}
+	return InsertBuilder{builder: sq.Insert(table), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
 }
 
 func (rc runCtx) Delete(table string) DeleteBuilder {
-	return DeleteBuilder{builder: sq.Delete(table), queryable: defaultQueryable, ctx: rc.ctx}
+	return DeleteBuilder{builder: sq.Delete(table), queryable: defaultQueryable, logger: defaultLogger, ctx: rc.ctx}
 }
 
 // runShim maps a Queryable to the squirrel.BaseRunner interface
@@ -67,7 +65,7 @@ func (t runShim) Query(_ string, _ ...interface{}) (*sql.Rows, error) {
 	return nil, fmt.Errorf("query is not implemented, please use QueryCtx")
 }
 
-func debug(ctx context.Context, builder interface{ ToSql() (string, []any, error) }) {
+func debug(logger Logger, builder interface{ ToSql() (string, []any, error) }) {
 	query, args, err := builder.ToSql()
-	log.Printf("[DEBUG] %+v\n", map[string]any{"sql": query, "args": args, "error": err})
+	logger.Printf("[DEBUG] %+v\n", map[string]any{"sql": query, "args": args, "error": err})
 }

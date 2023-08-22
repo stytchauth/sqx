@@ -11,6 +11,7 @@ type InsertBuilder struct {
 	queryable Queryable
 	ctx       context.Context
 	err       error
+	logger    Logger
 }
 
 // ============================================
@@ -78,22 +79,27 @@ func (b InsertBuilder) Do() error {
 
 // Debug prints the InsertBuilder state out to the provided logger
 func (b InsertBuilder) Debug() InsertBuilder {
-	debug(b.ctx, b.builder)
+	debug(b.logger, b.builder)
 	return b
 }
 
 // WithQueryable configures a Queryable for this InsertBuilder instance
 func (b InsertBuilder) WithQueryable(queryable Queryable) InsertBuilder {
-	return InsertBuilder{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err}
+	return InsertBuilder{builder: b.builder, queryable: queryable, logger: b.logger, ctx: b.ctx, err: b.err}
+}
+
+// WithLogger configures a Queryable for this InsertBuilder instance
+func (b InsertBuilder) WithLogger(logger Logger) InsertBuilder {
+	return InsertBuilder{builder: b.builder, queryable: b.queryable, logger: logger, ctx: b.ctx, err: b.err}
 }
 
 func (b InsertBuilder) withError(err error) InsertBuilder {
 	if b.err != nil {
 		return b
 	}
-	return InsertBuilder{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: err}
+	return InsertBuilder{builder: b.builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: err}
 }
 
 func (b InsertBuilder) withBuilder(builder sq.InsertBuilder) InsertBuilder {
-	return InsertBuilder{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err}
+	return InsertBuilder{builder: builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: b.err}
 }

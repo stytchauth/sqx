@@ -8,13 +8,14 @@ import (
 	"github.com/blockloop/scan"
 )
 
-// SelectBuilder[T]wraps squirrel.SelectBuilder and adds syntactic sugar for
+// SelectBuilder wraps squirrel.SelectBuilder and adds syntactic sugar for
 // common usage patterns
 type SelectBuilder[T any] struct {
 	builder   sq.SelectBuilder
 	queryable Queryable
 	ctx       context.Context
 	err       error
+	logger    Logger
 }
 
 // ============================================
@@ -242,19 +243,24 @@ func (b SelectBuilder[T]) query() (*sql.Rows, error) {
 	return b.builder.RunWith(runShim{b.queryable}).QueryContext(b.ctx)
 }
 func (b SelectBuilder[T]) Debug() SelectBuilder[T] {
-	debug(b.ctx, b.builder)
+	debug(b.logger, b.builder)
 	return b
 }
 
 // WithQueryable configures a Queryable for this SelectBuilder instance
 func (b SelectBuilder[T]) WithQueryable(queryable Queryable) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err}
+	return SelectBuilder[T]{builder: b.builder, queryable: queryable, logger: b.logger, ctx: b.ctx, err: b.err}
+}
+
+// WithLogger configures a Queryable for this SelectBuilder instance
+func (b SelectBuilder[T]) WithLogger(logger Logger) SelectBuilder[T] {
+	return SelectBuilder[T]{builder: b.builder, queryable: b.queryable, logger: logger, ctx: b.ctx, err: b.err}
 }
 
 func (b SelectBuilder[T]) withBuilder(builder sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err}
+	return SelectBuilder[T]{builder: builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: b.err}
 }
 
 func (b SelectBuilder[T]) withError(err error) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: b.builder, queryable: b.queryable, ctx: b.ctx, err: err}
+	return SelectBuilder[T]{builder: b.builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: err}
 }
