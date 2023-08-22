@@ -10,7 +10,7 @@ import (
 )
 
 type runCtx struct {
-	runner sq.BaseRunner
+	runner BaseRunner
 	ctx    context.Context
 }
 
