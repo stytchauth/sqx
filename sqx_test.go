@@ -5,15 +5,18 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/stytchauth/sqx"
+	"log"
 	"strings"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	_ "github.com/go-sql-driver/mysql"
 )
+
+func init() {
+	sqx.SetDefaultLogger(sqx.MakeLogger(log.Printf))
+}
 
 func CreateDatabase() (*sql.DB, error) {
 	return sql.Open("mysql", "sqx:sqx@tcp(localhost:4306)/sqx?parseTime=true")
