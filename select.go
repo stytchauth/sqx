@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
 	sq "github.com/Masterminds/squirrel"
-	scan "github.com/blockloop/scan"
+	"github.com/blockloop/scan"
 )
 
-// SelectBuilder wraps squirrel.SelectBuilder and adds syntactic sugar for
+// SelectBuilder[T]wraps squirrel.SelectBuilder and adds syntactic sugar for
 // common usage patterns
 type SelectBuilder[T any] struct {
 	builder sq.SelectBuilder
@@ -18,8 +17,181 @@ type SelectBuilder[T any] struct {
 	err     error
 }
 
-func (s SelectBuilder[T]) One() (*T, error) {
-	dest, err := s.All()
+// ============================================
+// BEGIN: squirrel-SelectBuilder parity section
+// ============================================
+
+// Prefix adds an expression to the beginning of the query
+func (b SelectBuilder[T]) Prefix(sql string, args ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Prefix(sql, args...))
+}
+
+// PrefixExpr adds an expression to the very beginning of the query
+func (b SelectBuilder[T]) PrefixExpr(expr sq.Sqlizer) SelectBuilder[T] {
+	return b.withBuilder(b.builder.PrefixExpr(expr))
+}
+
+// Distinct adds a DISTINCT clause to the query.
+func (b SelectBuilder[T]) Distinct() SelectBuilder[T] {
+	return b.withBuilder(b.builder.Distinct())
+}
+
+// Options adds select option to the query
+func (b SelectBuilder[T]) Options(options ...string) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Options(options...))
+}
+
+// Columns adds result columns to the query.
+func (b SelectBuilder[T]) Columns(columns ...string) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Columns(columns...))
+}
+
+// RemoveColumns remove all columns from query.
+// Must add a new column with Column or Columns methods, otherwise
+// return a error.
+func (b SelectBuilder[T]) RemoveColumns() SelectBuilder[T] {
+	return b.withBuilder(b.builder.RemoveColumns())
+}
+
+// Column adds a result column to the query.
+// Unlike Columns, Column accepts args which will be bound to placeholders in
+// the columns string, for example:
+//
+//	Column("IF(col IN ("+squirrel.Placeholders(3)+"), 1, 0) as col", 1, 2, 3)
+func (b SelectBuilder[T]) Column(column any, args ...any) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Column(column, args...))
+}
+
+// From sets the FROM clause of the query.
+func (b SelectBuilder[T]) From(from string) SelectBuilder[T] {
+	return b.withBuilder(b.builder.From(from))
+}
+
+// FromSelect sets a subquery into the FROM clause of the query.
+func (b SelectBuilder[T]) FromSelect(from SelectBuilder[T], alias string) SelectBuilder[T] {
+	return b.withBuilder(b.builder.FromSelect(from.builder, alias))
+}
+
+// JoinClause adds a join clause to the query.
+func (b SelectBuilder[T]) JoinClause(pred interface{}, args ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.JoinClause(pred, args...))
+}
+
+// Join adds a JOIN clause to the query.
+func (b SelectBuilder[T]) Join(join string, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Join(join, rest...))
+}
+
+// LeftJoin adds a LEFT JOIN clause to the query.
+func (b SelectBuilder[T]) LeftJoin(join string, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.LeftJoin(join, rest...))
+}
+
+// RightJoin adds a RIGHT JOIN clause to the query.
+func (b SelectBuilder[T]) RightJoin(join string, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.RightJoin(join, rest...))
+}
+
+// InnerJoin adds a INNER JOIN clause to the query.
+func (b SelectBuilder[T]) InnerJoin(join string, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.InnerJoin(join, rest...))
+}
+
+// CrossJoin adds a CROSS JOIN clause to the query.
+func (b SelectBuilder[T]) CrossJoin(join string, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.CrossJoin(join, rest...))
+}
+
+// Where adds an expression to the WHERE clause of the query.
+//
+// Expressions are ANDed together in the generated SQL.
+//
+// Where accepts several types for its pred argument:
+//
+// nil OR "" - ignored.
+//
+// string - SQL expression.
+// If the expression has SQL placeholders then a set of arguments must be passed
+// as well, one for each placeholder.
+//
+// map[string]interface{} OR Eq - map of SQL expressions to values. Each key is
+// transformed into an expression like "<key> = ?", with the corresponding value
+// bound to the placeholder. If the value is nil, the expression will be "<key>
+// IS NULL". If the value is an array or slice, the expression will be "<key> IN
+// (?,?,...)", with one placeholder for each item in the value. These expressions
+// are ANDed together.
+//
+// Where will panic if pred isn't any of the above types.
+func (b SelectBuilder[T]) Where(pred interface{}, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Where(pred, rest...))
+}
+
+// GroupBy adds GROUP BY expressions to the query.
+func (b SelectBuilder[T]) GroupBy(groupBys ...string) SelectBuilder[T] {
+	return b.withBuilder(b.builder.GroupBy(groupBys...))
+}
+
+// Having adds an expression to the HAVING clause of the query.
+//
+// See Where.
+func (b SelectBuilder[T]) Having(pred interface{}, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Having(pred, rest...))
+}
+
+// OrderByClause adds ORDER BY clause to the query.
+func (b SelectBuilder[T]) OrderByClause(pred interface{}, args ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.OrderByClause(pred, args...))
+}
+
+// OrderBy adds ORDER BY expressions to the query.
+func (b SelectBuilder[T]) OrderBy(orderBys ...string) SelectBuilder[T] {
+	return b.withBuilder(b.builder.OrderBy(orderBys...))
+}
+
+// Limit sets a LIMIT clause on the query.
+func (b SelectBuilder[T]) Limit(limit uint64) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Limit(limit))
+}
+
+// RemoveLimit removes LIMIT clause
+func (b SelectBuilder[T]) RemoveLimit() SelectBuilder[T] {
+	return b.withBuilder(b.builder.RemoveLimit())
+}
+
+// Offset sets a OFFSET clause on the query.
+func (b SelectBuilder[T]) Offset(offset uint64) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Offset(offset))
+}
+
+// RemoveOffset removes OFFSET clause.
+func (b SelectBuilder[T]) RemoveOffset() SelectBuilder[T] {
+	return b.withBuilder(b.builder.RemoveOffset())
+}
+
+// Suffix adds an expression to the end of the query
+func (b SelectBuilder[T]) Suffix(sql string, rest ...interface{}) SelectBuilder[T] {
+	return b.withBuilder(b.builder.Suffix(sql, rest...))
+}
+
+// SuffixExpr adds an expression to the end of the query
+func (b SelectBuilder[T]) SuffixExpr(expr sq.Sqlizer) SelectBuilder[T] {
+	return b.withBuilder(b.builder.SuffixExpr(expr))
+}
+
+// ==========================================
+// END: squirrel-SelectBuilder parity section
+// ==========================================
+
+func (b SelectBuilder[T]) UnionAll(other SelectBuilder[T]) SelectBuilder[T] {
+	query, args, err := other.builder.ToSql()
+	if err != nil {
+		return b.withError(err)
+	}
+	return b.withBuilder(b.builder.Suffix("UNION ALL ("+query+")", args...))
+}
+
+func (b SelectBuilder[T]) One() (*T, error) {
+	dest, err := b.All()
 
 	if err != nil {
 		return nil, err
@@ -32,8 +204,8 @@ func (s SelectBuilder[T]) One() (*T, error) {
 	return &dest[0], nil
 }
 
-func (s SelectBuilder[T]) OneScalar() (T, error) {
-	ptr, err := s.One()
+func (b SelectBuilder[T]) OneScalar() (T, error) {
+	ptr, err := b.One()
 	if err != nil {
 		var uninitialized T
 		return uninitialized, err
@@ -41,8 +213,8 @@ func (s SelectBuilder[T]) OneScalar() (T, error) {
 	return *ptr, nil
 }
 
-func (s SelectBuilder[T]) All() ([]T, error) {
-	rows, err := s.query()
+func (b SelectBuilder[T]) All() ([]T, error) {
+	rows, err := b.query()
 	if err != nil {
 		return nil, err
 	}
@@ -57,87 +229,27 @@ func (s SelectBuilder[T]) All() ([]T, error) {
 	}
 }
 
-func (s SelectBuilder[T]) query() (*sql.Rows, error) {
-	if s.err != nil {
-		return nil, s.err
+func (b SelectBuilder[T]) query() (*sql.Rows, error) {
+	if b.err != nil {
+		return nil, b.err
 	}
-	if s.runner == nil {
+	if b.runner == nil {
 		return nil, errors.New("no runner")
 	}
-	if s.ctx == nil {
+	if b.ctx == nil {
 		return nil, errors.New("no ctx")
 	}
-	return s.builder.RunWith(s.runner).QueryContext(s.ctx)
+	return b.builder.RunWith(b.runner).QueryContext(b.ctx)
+}
+func (b SelectBuilder[T]) Debug() SelectBuilder[T] {
+	debug(b.ctx, b.builder)
+	return b
 }
 
-// TODO: Whenever you want to use a method on SelectBuilder[T] that isn't defined, implement it here
-// TODO: Can we code gen this?
-// Example - Having
-//func (s SelectBuilder[T]) Having(pred interface{}, rest ...interface{}) SelectBuilder[T] {
-//  return s.withBuilder(s.builder.Having(pred, rest...))
-//}
-
-func (s SelectBuilder[T]) From(from string) SelectBuilder[T] {
-	return s.withBuilder(s.builder.From(from))
+func (b SelectBuilder[T]) withBuilder(builder sq.SelectBuilder) SelectBuilder[T] {
+	return SelectBuilder[T]{builder: builder, runner: b.runner, ctx: b.ctx, err: b.err}
 }
 
-func (s SelectBuilder[T]) FromSelect(from SelectBuilder[T], alias string) SelectBuilder[T] {
-	return s.withBuilder(s.builder.FromSelect(from.builder, alias))
-}
-
-func (s SelectBuilder[T]) Join(join string, rest ...interface{}) SelectBuilder[T] {
-	return s.withBuilder(s.builder.Join(join, rest...))
-}
-
-func (s SelectBuilder[T]) LeftJoin(join string, rest ...interface{}) SelectBuilder[T] {
-	return s.withBuilder(s.builder.LeftJoin(join, rest...))
-}
-
-func (s SelectBuilder[T]) Where(pred interface{}, rest ...interface{}) SelectBuilder[T] {
-	return s.withBuilder(s.builder.Where(pred, rest...))
-}
-
-func (s SelectBuilder[T]) OrderBy(orderBys ...string) SelectBuilder[T] {
-	return s.withBuilder(s.builder.OrderBy(orderBys...))
-}
-
-func (s SelectBuilder[T]) Columns(columns ...string) SelectBuilder[T] {
-	return s.withBuilder(s.builder.Columns(columns...))
-}
-
-func (s SelectBuilder[T]) Limit(limit uint64) SelectBuilder[T] {
-	return s.withBuilder(s.builder.Limit(limit))
-}
-
-func (s SelectBuilder[T]) GroupBy(groupBys ...string) SelectBuilder[T] {
-	return s.withBuilder(s.builder.GroupBy(groupBys...))
-}
-
-func (s SelectBuilder[T]) Suffix(sql string, rest ...interface{}) SelectBuilder[T] {
-	return s.withBuilder(s.builder.Suffix(sql, rest...))
-}
-
-func (s SelectBuilder[T]) UnionAll(other SelectBuilder[T]) SelectBuilder[T] {
-	query, args, err := other.builder.ToSql()
-	if err != nil {
-		return s.withError(err)
-	}
-	return s.withBuilder(s.builder.Suffix("UNION ALL ("+query+")", args...))
-}
-
-func (s SelectBuilder[T]) Using(operation func(builder SelectBuilder[T]) SelectBuilder[T]) SelectBuilder[T] {
-	return operation(s)
-}
-
-func (s SelectBuilder[T]) Debug() SelectBuilder[T] {
-	debug(s.ctx, s.builder)
-	return s
-}
-
-func (s SelectBuilder[T]) withBuilder(builder sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: builder, runner: s.runner, ctx: s.ctx, err: s.err}
-}
-
-func (s SelectBuilder[T]) withError(err error) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: s.builder, runner: s.runner, ctx: s.ctx, err: err}
+func (b SelectBuilder[T]) withError(err error) SelectBuilder[T] {
+	return SelectBuilder[T]{builder: b.builder, runner: b.runner, ctx: b.ctx, err: err}
 }
