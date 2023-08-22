@@ -1,12 +1,11 @@
 package sqx
 
 import (
-	sq "github.com/Masterminds/squirrel"
 	scan "github.com/blockloop/scan"
 )
 
 type Clause struct {
-	contents sq.Eq
+	contents Eq
 	err      error
 }
 
@@ -21,7 +20,7 @@ func (c *Clause) ToSql() (string, []interface{}, error) {
 // ToClause converts a filter interface to a SQL Where clause by introspecting its db tags
 func ToClause(v any, excluded ...string) *Clause {
 	if isNil(v) {
-		return &Clause{contents: sq.Eq{}, err: nil}
+		return &Clause{contents: Eq{}, err: nil}
 	}
 	cols, err := scan.ColumnsStrict(v, excluded...)
 	if err != nil {
@@ -31,7 +30,7 @@ func ToClause(v any, excluded ...string) *Clause {
 	if err != nil {
 		return &Clause{contents: nil, err: err}
 	}
-	contents := sq.Eq{}
+	contents := Eq{}
 	for i := range cols {
 		if !isNil(vals[i]) {
 			contents[cols[i]] = vals[i]
@@ -46,7 +45,7 @@ func ToClauseAlias(tableName string, v any, excluded ...string) *Clause {
 	if clause.err != nil {
 		return clause
 	}
-	aliasedClause := &Clause{contents: sq.Eq{}, err: nil}
+	aliasedClause := &Clause{contents: Eq{}, err: nil}
 	for key, value := range clause.contents {
 		aliasedClause.contents[tableName+"."+key] = value
 	}

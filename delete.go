@@ -12,6 +12,7 @@ type DeleteBuilder struct {
 	queryable Queryable
 	ctx       context.Context
 	err       error
+	logger    Logger
 }
 
 // ============================================
@@ -24,7 +25,7 @@ func (b DeleteBuilder) Prefix(sql string, args ...interface{}) DeleteBuilder {
 }
 
 // PrefixExpr adds an expression to the very beginning of the query
-func (b DeleteBuilder) PrefixExpr(expr sq.Sqlizer) DeleteBuilder {
+func (b DeleteBuilder) PrefixExpr(expr Sqlizer) DeleteBuilder {
 	return b.withBuilder(b.builder.PrefixExpr(expr))
 }
 
@@ -78,15 +79,20 @@ func (b DeleteBuilder) Do() error {
 
 // Debug prints the DeleteBuilder state out to the provided logger
 func (b DeleteBuilder) Debug() DeleteBuilder {
-	debug(b.ctx, b.builder)
+	debug(b.logger, b.builder)
 	return b
 }
 
 // WithQueryable configures a Queryable for this DeleteBuilder instance
 func (b DeleteBuilder) WithQueryable(queryable Queryable) DeleteBuilder {
-	return DeleteBuilder{builder: b.builder, queryable: queryable, ctx: b.ctx, err: b.err}
+	return DeleteBuilder{builder: b.builder, queryable: queryable, logger: b.logger, ctx: b.ctx, err: b.err}
+}
+
+// WithLogger configures a Queryable for this DeleteBuilder instance
+func (b DeleteBuilder) WithLogger(logger Logger) DeleteBuilder {
+	return DeleteBuilder{builder: b.builder, queryable: b.queryable, logger: logger, ctx: b.ctx, err: b.err}
 }
 
 func (b DeleteBuilder) withBuilder(builder sq.DeleteBuilder) DeleteBuilder {
-	return DeleteBuilder{builder: builder, queryable: b.queryable, ctx: b.ctx, err: b.err}
+	return DeleteBuilder{builder: builder, queryable: b.queryable, logger: b.logger, ctx: b.ctx, err: b.err}
 }
