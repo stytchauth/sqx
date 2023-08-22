@@ -23,7 +23,7 @@ func (b InsertBuilder) Prefix(sql string, args ...interface{}) InsertBuilder {
 }
 
 // PrefixExpr adds an expression to the very beginning of the query
-func (b InsertBuilder) PrefixExpr(expr sq.Sqlizer) InsertBuilder {
+func (b InsertBuilder) PrefixExpr(expr Sqlizer) InsertBuilder {
 	return b.withBuilder(b.builder.PrefixExpr(expr))
 }
 
@@ -48,7 +48,7 @@ func (b InsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
 }
 
 // SuffixExpr adds an expression to the end of the query
-func (b InsertBuilder) SuffixExpr(expr sq.Sqlizer) InsertBuilder {
+func (b InsertBuilder) SuffixExpr(expr Sqlizer) InsertBuilder {
 	return b.withBuilder(b.builder.SuffixExpr(expr))
 }
 

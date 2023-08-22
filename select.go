@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/blockloop/scan"
 )
@@ -27,7 +28,7 @@ func (b SelectBuilder[T]) Prefix(sql string, args ...interface{}) SelectBuilder[
 }
 
 // PrefixExpr adds an expression to the very beginning of the query
-func (b SelectBuilder[T]) PrefixExpr(expr sq.Sqlizer) SelectBuilder[T] {
+func (b SelectBuilder[T]) PrefixExpr(expr Sqlizer) SelectBuilder[T] {
 	return b.withBuilder(b.builder.PrefixExpr(expr))
 }
 
@@ -174,7 +175,7 @@ func (b SelectBuilder[T]) Suffix(sql string, rest ...interface{}) SelectBuilder[
 }
 
 // SuffixExpr adds an expression to the end of the query
-func (b SelectBuilder[T]) SuffixExpr(expr sq.Sqlizer) SelectBuilder[T] {
+func (b SelectBuilder[T]) SuffixExpr(expr Sqlizer) SelectBuilder[T] {
 	return b.withBuilder(b.builder.SuffixExpr(expr))
 }
 
