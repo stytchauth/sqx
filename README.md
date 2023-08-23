@@ -81,6 +81,12 @@ If no response is found, returns a `sql.ErrNoRows`.
 If more than one row is returned from the underlying query, an error will be logged to the provided logger.
 - `func (b SelectBuilder[T]) OneStrict() (*T, error)` - like `One()` but returns an error if more than one row is returned
 - `func (b SelectBuilder[T]) OneScalar() (T, error)` - like `One()` but can be used to read simple values like `int32` or `string`
+- `func (b SelectBuilder[T]) First() (*T, error)` - line `One()` but does not care if the underlying query has more than
+  one result and will just take the first row.
+**NOTE**: if you don't supply an OrderBy clause, the first result is not guaranteed to be the same each time you run the
+query.
+- `func (b SelectBuilder[T]) FirstScalar() (T, error)` - line `First()` but can be used to read simple values like
+  `int32` or `string`
 - `func (b SelectBuilder[T]) All() ([]T, error)` - returns a slice of structs of type `T`
 
 You'll often want to filter the data that you read - for example, finding all `Users` with a certain status, or finding a `User` with a specific ID.

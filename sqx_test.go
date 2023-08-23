@@ -171,6 +171,21 @@ func TestInsert(t *testing.T) {
 	})
 }
 
+func TestDelete(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	setupTestWidgetsTable(t)
+	w1 := newWidget("great")
+	dbWidget := newDBWidget()
+	require.NoError(t, dbWidget.Create(ctx, &w1))
+
+	// Act
+	err := dbWidget.Delete(ctx, w1.ID)
+
+	// Assert
+	assert.NoError(t, err)
+}
+
 func TestUpdate(t *testing.T) {
 	ctx := context.Background()
 	status := "excellent"

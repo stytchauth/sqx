@@ -39,6 +39,13 @@ func (d *dbWidget) Create(ctx context.Context, w *Widget) error {
 		Do()
 }
 
+func (d *dbWidget) Delete(ctx context.Context, widgetID string) error {
+	return sqx.Write(ctx).
+		Delete("sqx_widgets_test").
+		Where(sqx.Eq{"widget_id": widgetID}).
+		Do()
+}
+
 type widgetUpdateFilter struct {
 	Status  *string              `db:"status"`
 	Enabled *bool                `db:"enabled"`
