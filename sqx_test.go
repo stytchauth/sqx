@@ -55,6 +55,8 @@ func Tx(t *testing.T) *sql.Tx {
 		t.Fatalf("DB connection failed: %s. Did you remember to run make services?", err.Error())
 	}
 
+	// This overwrites the default queryable for the entire package.
+	// You probably don't want to do this - you probably want to use WithQueryable(tx) instead
 	sqx.SetDefaultQueryable(tx)
 	t.Cleanup(func() {
 		sqx.SetDefaultQueryable(nil)
@@ -72,11 +74,14 @@ func setupTestWidgetsTable(t *testing.T) *sql.Tx {
 	db := Tx(t)
 	_, err := db.Exec(`DROP TABLE IF EXISTS sqx_widgets_test;`)
 	require.NoError(t, err)
-	_, err = db.Exec(`CREATE TABLE sqx_widgets_test (
-    	widget_id      VARCHAR(128),
-  		Status  VARCHAR(128),
-  		enabled BOOLEAN
-    )`)
+	_, err = db.Exec(`
+		CREATE TABLE sqx_widgets_test (
+			widget_id		VARCHAR(128) NOT NULL,
+			status			VARCHAR(128) NOT NULL,
+			enabled			BOOLEAN NOT NULL,
+			owner_id 		VARCHAR(128)
+		)
+	`)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_, err := db.Exec(`DROP TABLE IF EXISTS sqx_widgets_test;`)
@@ -202,6 +207,29 @@ func TestUpdate(t *testing.T) {
 			Enabled: w1.Enabled,
 		}
 		assert.Equal(t, expected, w1db)
+	})
+
+	t.Run("Can update a nullable row as expected", func(t *testing.T) {
+		setupTestWidgetsTable(t)
+		dbWidget := newDBWidget()
+		ownerID := "owner-id"
+		require.NoError(t, dbWidget.Create(ctx, &w1))
+
+		// Owner IDs are null by default. Set the owner ID to a non-null value
+		assert.NoError(t, dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{
+			OwnerID: sqx.NewNullable[string](ownerID),
+		}))
+		w1db, err := dbWidget.GetByID(ctx, w1.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, &ownerID, w1db.OwnerID)
+
+		// Now set it back to null
+		assert.NoError(t, dbWidget.Update(ctx, w1.ID, &widgetUpdateFilter{
+			OwnerID: sqx.NewNull[string](),
+		}))
+		w2db, err := dbWidget.GetByID(ctx, w1.ID)
+		assert.NoError(t, err)
+		assert.Nil(t, w2db.OwnerID)
 	})
 
 	t.Run("Does not return an error on no updates", func(t *testing.T) {

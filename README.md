@@ -231,6 +231,35 @@ sqx.Read[UserWithPets](ctx).
 // map[args:[poodle] error:<nil> sql:SELECT * FROM users u JOIN pets p ON users.id = pets.user_id WHERE u.breed = ?]
 ```
 
+#### Setting a field to `null` using an Update
+Use the `sqx.Nullable[T]` type and its helper methods - `sqx.NewNullable` and `sqx.NewNull`.
+
+Given the update request:
+```golang
+type PetUpdate {
+	UserID sqx.Nullable[string] `db:"user_id"`
+}
+func UpdatePets(ctx context.Context, petID string, petUpdate *PetUpdate) error {
+	return sqx.Write(ctx).
+		Update("pets").
+		Where(sqx.Eq{"id": petID}).
+		SetMap(sqx.ToClause(petUpdate)).
+		Do()
+}
+```
+This update will set the `user_id` field to the provided value
+```golang
+UpdatePets(ctx, &PetUpdate{
+	UserID: sqx.NewNullable("some-user-id")
+})
+```
+and this update will set the `user_id` field to `NULL`/`nil`
+```golang
+UpdatePets(ctx, &PetUpdate{
+	UserID: sqx.NewNull[string]()
+})
+```
+
 #### Validating data before inserting
 `InsertBuilder.SetMap()` can take in an optional error. If an error occurs, the insert operation will short-circuit.
 
