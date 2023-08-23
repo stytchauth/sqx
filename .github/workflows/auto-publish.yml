@@ -14,7 +14,7 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION=$(sed -n 's/.*Version = "\(.*\)".*/\1/p' version.go)
+          VERSION=$(sed -n 's/.*VERSION = "\(.*\)".*/\1/p' version.go)
           echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get changed files
