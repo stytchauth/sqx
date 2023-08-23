@@ -60,11 +60,6 @@ func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
 	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
-// FromSquirrelSelect transforms a squirrel.SelectBuilder into a SelectBuilder in the typedRunCtx.
-func (rc typedRunCtx[T]) FromSquirrelSelect(sel sq.SelectBuilder) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sel, queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
-}
-
 // Update constructs a new UpdateBuilder for the given table for this typedRunCtx.
 func (rc runCtx) Update(table string) UpdateBuilder {
 	return UpdateBuilder{builder: sq.Update(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
