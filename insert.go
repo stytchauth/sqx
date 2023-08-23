@@ -7,6 +7,7 @@ import (
 	sq "github.com/stytchauth/squirrel"
 )
 
+// InsertBuilder wraps squirrel.InsertBuilder and adds syntactic sugar for common usage patterns.
 type InsertBuilder struct {
 	builder   sq.InsertBuilder
 	queryable Queryable

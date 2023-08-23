@@ -4,12 +4,14 @@ import (
 	scan "github.com/blockloop/scan/v2"
 )
 
+// Clause stores an Eq result, but also holds an error if one occurred during the conversion. You may think of this
+// struct as a (Eq, error) tuple that implements the Sqlizer interface.
 type Clause struct {
 	contents Eq
 	err      error
 }
 
-//nolint:stylecheck
+// ToSql calls the underlying Eq's ToSql method, but returns the error if one occurred when the Clause was constructed.
 func (c *Clause) ToSql() (string, []interface{}, error) {
 	if c.err != nil {
 		return "", nil, c.err

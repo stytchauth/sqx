@@ -7,6 +7,7 @@ import (
 	sq "github.com/stytchauth/squirrel"
 )
 
+// DeleteBuilder wraps squirrel.DeleteBuilder and adds syntactic sugar for common usage patterns.
 type DeleteBuilder struct {
 	builder   sq.DeleteBuilder
 	queryable Queryable
