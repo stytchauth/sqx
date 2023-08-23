@@ -241,6 +241,30 @@ func (b SelectBuilder[T]) OneScalarStrict() (T, error) {
 	return *ptr, nil
 }
 
+func (b SelectBuilder[T]) First() (*T, error) {
+	rows, err := b.query()
+	if err != nil {
+		return nil, err
+	}
+
+	var dest *T
+	err = scan.RowStrict(dest, rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return dest, nil
+}
+
+func (b SelectBuilder[T]) FirstScalar() (T, error) {
+	ptr, err := b.First()
+	if err != nil {
+		var uninitialized T
+		return uninitialized, err
+	}
+	return *ptr, nil
+}
+
 func (b SelectBuilder[T]) All() ([]T, error) {
 	rows, err := b.query()
 	if err != nil {
