@@ -8,6 +8,7 @@ import (
 	sq "github.com/stytchauth/squirrel"
 )
 
+// UpdateBuilder wraps squirrel.UpdateBuilder and adds syntactic sugar for common usage patterns.
 type UpdateBuilder struct {
 	builder    sq.UpdateBuilder
 	queryable  Queryable

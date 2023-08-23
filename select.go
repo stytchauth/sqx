@@ -10,8 +10,7 @@ import (
 	sq "github.com/stytchauth/squirrel"
 )
 
-// SelectBuilder wraps squirrel.SelectBuilder and adds syntactic sugar for
-// common usage patterns
+// SelectBuilder wraps squirrel.SelectBuilder and adds syntactic sugar for common usage patterns.
 type SelectBuilder[T any] struct {
 	builder   sq.SelectBuilder
 	queryable Queryable
@@ -185,6 +184,7 @@ func (b SelectBuilder[T]) SuffixExpr(expr Sqlizer) SelectBuilder[T] {
 // END: squirrel-SelectBuilder parity section
 // ==========================================
 
+// UnionAll adds a UNION ALL clause to the query from another SelectBuilder of the same type.
 func (b SelectBuilder[T]) UnionAll(other SelectBuilder[T]) SelectBuilder[T] {
 	query, args, err := other.builder.ToSql()
 	if err != nil {
@@ -193,6 +193,10 @@ func (b SelectBuilder[T]) UnionAll(other SelectBuilder[T]) SelectBuilder[T] {
 	return b.withBuilder(b.builder.Suffix("UNION ALL ("+query+")", args...))
 }
 
+// one returns a single result from the query, or an error if there was a problem. It may be run in strict or non-strict
+// mode. In non-strict mode, a warning is logged if more than one result is returned in the query. In strict mode, this
+// turns into an ErrTooManyRows error. If the underlying query is *expected* to return more than one row and this is not
+// cause for concern, you should instead use First.
 func (b SelectBuilder[T]) one(strict bool) (*T, error) {
 	dest, err := b.All()
 
@@ -215,14 +219,24 @@ func (b SelectBuilder[T]) one(strict bool) (*T, error) {
 	return &dest[0], nil
 }
 
+// One returns a single result from the query, or an error if there was a problem. This runs in "non-strict" mode which
+// means that if the underlying query returns more than one row, a warning is logged but no error is raised. If you want
+// to raise an error if the underlying query returns more than one result, use OneStrict. If you instead expect that
+// more than one result may be returned and this is not cause for concern, use First.
 func (b SelectBuilder[T]) One() (*T, error) {
 	return b.one(false)
 }
 
+// OneStrict returns a single result from the query, or an error if there was a problem. This runs in "strict" mode
+// which means that if the underlying query returns more than one row, an error is raised. You may instead use One to
+// downgrade this error into a warning from the saved logger, or First to return the first result for cases where you
+// expect more than one result can be returned from the underlying query and this is not cause for concern.
 func (b SelectBuilder[T]) OneStrict() (*T, error) {
 	return b.one(true)
 }
 
+// OneScalar is like One but dereferences the result into a scalar value. If an error is raised, the scalar value will
+// be the zero value of the type.
 func (b SelectBuilder[T]) OneScalar() (T, error) {
 	ptr, err := b.One()
 	if err != nil {
@@ -232,6 +246,8 @@ func (b SelectBuilder[T]) OneScalar() (T, error) {
 	return *ptr, nil
 }
 
+// OneScalarStrict is like OneStrict but dereferences the result into a scalar value. If an error is raised, the scalar
+// value will be the zero value of the type.
 func (b SelectBuilder[T]) OneScalarStrict() (T, error) {
 	ptr, err := b.OneStrict()
 	if err != nil {
@@ -241,6 +257,9 @@ func (b SelectBuilder[T]) OneScalarStrict() (T, error) {
 	return *ptr, nil
 }
 
+// First returns the first result from the query, or an error if there was a problem. This is useful for queries that
+// are expected to return more than one result, but you only care about the first one. Note that if you haven't added an
+// ORDER BY clause to your query, the first result is not guaranteed to be the same each time you run the query.
 func (b SelectBuilder[T]) First() (*T, error) {
 	rows, err := b.query()
 	if err != nil {
@@ -256,6 +275,8 @@ func (b SelectBuilder[T]) First() (*T, error) {
 	return dest, nil
 }
 
+// FirstScalar is like First but dereferences the result into a scalar value. If an error is raised, the scalar value
+// will be the zero value of the type.
 func (b SelectBuilder[T]) FirstScalar() (T, error) {
 	ptr, err := b.First()
 	if err != nil {
@@ -265,6 +286,7 @@ func (b SelectBuilder[T]) FirstScalar() (T, error) {
 	return *ptr, nil
 }
 
+// All returns all results from the query as a slice of T.
 func (b SelectBuilder[T]) All() ([]T, error) {
 	rows, err := b.query()
 	if err != nil {
@@ -296,6 +318,9 @@ func (b SelectBuilder[T]) query() (*sql.Rows, error) {
 	}
 	return b.builder.RunWith(runShim{b.queryable}).QueryContext(b.ctx)
 }
+
+// Debug prints the SQL query using the builder's logger and then returns b, unmodified. If the builder has no logger
+// set (and SetDefaultLogger has not been called), then log.Printf is used instead.
 func (b SelectBuilder[T]) Debug() SelectBuilder[T] {
 	debug(b.logger, b.builder)
 	return b
