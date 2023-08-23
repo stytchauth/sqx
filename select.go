@@ -204,8 +204,12 @@ func (b SelectBuilder[T]) one(strict bool) (*T, error) {
 		return nil, sql.ErrNoRows
 	}
 
-	if strict && len(dest) > 1 {
-		return nil, ErrTooManyRows{Expected: 1, Actual: len(dest)}
+	if len(dest) > 1 {
+		if strict {
+			return nil, ErrTooManyRows{Expected: 1, Actual: len(dest)}
+		} else if b.logger != nil {
+			b.logger.Printf("[WARN] sqx: in call to One, got %d rows, returning first result", len(dest))
+		}
 	}
 
 	return &dest[0], nil
@@ -230,6 +234,30 @@ func (b SelectBuilder[T]) OneScalar() (T, error) {
 
 func (b SelectBuilder[T]) OneScalarStrict() (T, error) {
 	ptr, err := b.OneStrict()
+	if err != nil {
+		var uninitialized T
+		return uninitialized, err
+	}
+	return *ptr, nil
+}
+
+func (b SelectBuilder[T]) First() (*T, error) {
+	rows, err := b.query()
+	if err != nil {
+		return nil, err
+	}
+
+	var dest *T
+	err = scan.RowStrict(dest, rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return dest, nil
+}
+
+func (b SelectBuilder[T]) FirstScalar() (T, error) {
+	ptr, err := b.First()
 	if err != nil {
 		var uninitialized T
 		return uninitialized, err

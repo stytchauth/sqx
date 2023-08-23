@@ -25,18 +25,16 @@ func (w Widget) toSetMap() (map[string]any, error) {
 }
 
 type dbWidget struct {
-	db sqx.Queryable
 }
 
-func newDBWidget(db sqx.Queryable) dbWidget {
-	return dbWidget{db: db}
+func newDBWidget() dbWidget {
+	return dbWidget{}
 }
 
 func (d *dbWidget) Create(ctx context.Context, w *Widget) error {
 	return sqx.Write(ctx).
 		Insert("sqx_widgets_test").
 		SetMap(w.toSetMap()).
-		Debug().
 		Do()
 }
 
@@ -53,14 +51,10 @@ func (w *widgetUpdateFilter) toSetMap() (map[string]any, error) {
 }
 
 func (d *dbWidget) Update(ctx context.Context, widgetID string, f *widgetUpdateFilter) error {
-	if !sqx.ContainsUpdates(f) {
-		return nil
-	}
 	return sqx.Write(ctx).
 		Update("sqx_widgets_test").
 		Where(sqx.Eq{"widget_id": widgetID}).
 		SetMap(f.toSetMap()).
-		Debug().
 		Do()
 }
 
@@ -69,12 +63,12 @@ func (d *dbWidget) GetByID(ctx context.Context, widgetID string) (*Widget, error
 		Select("*").
 		From("sqx_widgets_test").
 		Where(sqx.Eq{"widget_id": widgetID}).
-		Debug().
-		One()
+		OneStrict()
 }
 
 type widgetGetFilter struct {
-	widgetID *[]string `db:"id"`
+	WidgetID *[]string `db:"widget_id"`
+	Status   *string   `db:"status"`
 }
 
 func (d *dbWidget) Get(ctx context.Context, f *widgetGetFilter) ([]Widget, error) {
@@ -82,17 +76,13 @@ func (d *dbWidget) Get(ctx context.Context, f *widgetGetFilter) ([]Widget, error
 		Select("*").
 		From("sqx_widgets_test").
 		Where(sqx.ToClause(f)).
-		Debug().
 		All()
 }
 
 func (d *dbWidget) GetAll(ctx context.Context) ([]Widget, error) {
 	return sqx.Read[Widget](ctx).
 		Select("*").
-		Debug().
 		From("sqx_widgets_test").
-		Debug().
 		OrderBy("widget_id DESC").
-		Debug().
 		All()
 }
