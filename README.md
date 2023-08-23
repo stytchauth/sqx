@@ -60,6 +60,7 @@ func DeleteUser(ctx context.Context, userID string) error {
 		Where(sqx.Eq{"ID": userID}).
 		Do()
 }
+
 ```
 ---
 ### Core Concepts
@@ -89,9 +90,9 @@ and only present fields are preserved.
 For example, the following struct definition can be used to find users with a specific ID, a specific Email, a specific PhoneNumber, or any combination thereof.
 ```golang
 type GetUserFilter struct {
-    ID          *string `db:"id"`
-    Email       *string `db:"email"`
-    PhoneNumber *string `db:"phone_number"`
+	ID          *string `db:"id"`
+	Email       *string `db:"email"`
+	PhoneNumber *string `db:"phone_number"`
 }
 ```
 
@@ -124,8 +125,8 @@ func GetUsersAndProfileData(ctx context.Context, filter GetUserFilter) ([]User, 
 You can also define the alias directly in the struct tag
 ```golang
 type GetUserWithPetFilter struct {
-    UserID  *string `db:"u.id"`
-    PetID   *string `db:"p.id"`
+	UserID *string `db:"u.id"`
+	PetID  *string `db:"p.id"`
 }
 ```
 
@@ -158,18 +159,18 @@ type UserUpdate struct {
 
 ```golang
 func InsertUser(ctx context.Context, user *User) error {
-    return sqx.Write(ctx).
-        Insert("users").
-        SetMap(sqx.ToSetMap(user)).
-        Do()
+	return sqx.Write(ctx).
+		Insert("users").
+		SetMap(sqx.ToSetMap(user)).
+		Do()
 }
 
 func UpdateUser(ctx context.Context, userID string, update *UserUpdate) error {
-    return sqx.Write(ctx).
-        Update("users").
+	return sqx.Write(ctx).
+		Update("users").
 		Where(sqx.Eq{"id": userID}).
-        SetMap(sqx.ToSetMap(update)).
-        Do()
+		SetMap(sqx.ToSetMap(update)).
+		Do()
 }
 ```
 
@@ -212,13 +213,13 @@ func GetAllUsers(ctx context.Context) ([]User, error) {
 Call `.Debug()` at any time to print out the internal state of the query builder
 ```golang
 sqx.Read[UserWithPets](ctx).
-    Select("*").
-    From("users u").
+	Select("*").
+	From("users u").
 	Debug().
-    Join("pets p ON users.id = pets.user_id").
-    Where(sqx.ToClauseAlias("u", filter)).
+	Join("pets p ON users.id = pets.user_id").
+	Where(sqx.ToClauseAlias("u", filter)).
 	Debug().
-    All()
+	All()
 // outputs
 // map[args:[] error:<nil> sql:SELECT * FROM users u]
 // map[args:[poodle] error:<nil> sql:SELECT * FROM users u JOIN pets p ON users.id = pets.user_id WHERE u.breed = ?]
@@ -233,8 +234,8 @@ type Pet struct {
 }
 func (p *Pet) ToSetMap() (map[string]any, error) {
 	if p.name == "" {
-        return nil, fmt.Errorf("pet was missing name")		
-    }
+		return nil, fmt.Errorf("pet was missing name")		
+	}
 	return sqx.ToSetMap(p), nil
 }
 
@@ -242,7 +243,7 @@ func CreatePet(ctx context.Context, pet *Pet) error {
 	return sqx.Write(ctx).
 		Insert("pets").
 		SetMap(pet.ToSetMap()).
-	    Do()
+		Do()
 }
 ```
 
