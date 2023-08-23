@@ -244,13 +244,13 @@ func UpdatePets(ctx context.Context, petID string, petUpdate *PetUpdate) error {
 This update will set the `user_id` field to the provided value
 ```golang
 UpdatePets(ctx, &PetUpdate{
-	sqx.NewNullable("some-user-id")
+	UserID: sqx.NewNullable("some-user-id")
 })
 ```
 and this update will set the `user_id` field to `NULL`/`nil`
 ```golang
 UpdatePets(ctx, &PetUpdate{
-	sqx.NewNull[string]()
+	UserID: sqx.NewNull[string]()
 })
 ```
 
