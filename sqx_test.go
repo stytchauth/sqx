@@ -76,12 +76,12 @@ func setupTestWidgetsTable(t *testing.T) *sql.Tx {
 	require.NoError(t, err)
 	_, err = db.Exec(`
 		CREATE TABLE sqx_widgets_test (
-    		widget_id		VARCHAR(128) NOT NULL,
-  			status			VARCHAR(128) NOT NULL,
-  			enabled			BOOLEAN NOT NULL,
-  			owner_id 		VARCHAR(128)
-    	)
-    `)
+			widget_id		VARCHAR(128) NOT NULL,
+			status			VARCHAR(128) NOT NULL,
+			enabled			BOOLEAN NOT NULL,
+			owner_id 		VARCHAR(128)
+		)
+	`)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_, err := db.Exec(`DROP TABLE IF EXISTS sqx_widgets_test;`)
