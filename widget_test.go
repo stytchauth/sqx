@@ -8,9 +8,10 @@ import (
 )
 
 type Widget struct {
-	ID      string `db:"widget_id"`
-	Status  string `db:"Status"`
-	Enabled bool   `db:"enabled"`
+	ID      string  `db:"widget_id"`
+	Status  string  `db:"status"`
+	Enabled bool    `db:"enabled"`
+	OwnerID *string `db:"owner_id"`
 }
 
 func (w Widget) toSetMap() (map[string]any, error) {
@@ -39,8 +40,9 @@ func (d *dbWidget) Create(ctx context.Context, w *Widget) error {
 }
 
 type widgetUpdateFilter struct {
-	Status  *string `db:"status"`
-	Enabled *bool   `db:"enabled"`
+	Status  *string              `db:"status"`
+	Enabled *bool                `db:"enabled"`
+	OwnerID sqx.Nullable[string] `db:"owner_id"`
 }
 
 func (w *widgetUpdateFilter) toSetMap() (map[string]any, error) {
