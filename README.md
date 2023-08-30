@@ -437,7 +437,7 @@ if err != nil {
 [`gorm`](https://gorm.io/) is a full-featured ORM library. That's great for some people and some projects!
 gorm certainly does a great job of removing boilerplate around common DB IO.
 That being said - some people are ORM people and some people aren't. If you value full control over what SQL is being run, a
-query builder based approach is going to be friendlier than an ORM based approach any time.
+query builder based approach is going to be friendlier than an ORM based approach.
 ```golang
 var users []User
 if err := db.Table("users").Find(&users).Error; err != nil {
