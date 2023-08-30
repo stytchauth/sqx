@@ -6,7 +6,14 @@ Squirrel Xtended (`sqx`) is a convenient library for db interactions in go. It p
 - [blockloop/scan](https://github.com/blockloop/scan) - for data marshalling
 - [Go 1.18 Generics](https://go.dev/doc/tutorial/generics)
 
-`sqx` is not an ORM or a migration tool. `sqx` just wants to run some SQL! 
+`sqx` is not an ORM or a migration tool. `sqx` just wants to run some SQL!
+
+**Links**
+-  [Quick Start](#quick-start)
+-  [Core Concepts](#core-concepts)
+-  [Examples](#examples)
+-  [Why SQX](#why-sqx)
+-  [Contributing](#contributing)
 
 ### Quick Start
 Teach `sqx` where your DB handle and logger are. `sqx` can then be used to create, update, and delete data.
@@ -46,6 +53,7 @@ type GetUserFilter struct {
 	ID          *string `db:"id"`
 	Email       *string `db:"email"`
 	PhoneNumber *string `db:"phone_number"`
+	Status      *string `db:"status"`
 }
 
 func GetUsers(ctx context.Context, filter GetUserFilter) ([]User, error) {
@@ -351,6 +359,89 @@ func Write(ctx context.Context, db sqx.Queryable) interface {
 	Delete(tblName string) sqx.DeleteBuilder
 } {
 	return sqx.Write(ctx).WithQueryable(db).WithLogger(logging.FromContext(ctx))
+}
+```
+----
+### Why `sqx`?
+
+`sqx` is made to operate in a sweet spot just slightly past "query builder", but well before "ORM".
+The closest analog for `sqx` is [`knex.js`](https://knexjs.org/) - a Node query builder with wonderful DX.
+`sqx` wants to eliminate boilerplate commonly found in DB IO operations based on Rob Pike's [Errors are values](https://go.dev/blog/errors-are-values) essay.
+
+Returning to our [quick-start example](#quick-start), we see that `sqx` lets us create reusable DB query patterns with
+a minimal amount of boilerplate, while also not obscuring the SQL query that is generated. The following snippet shows 
+a single function that can be ran in several different ways - to list all users in the table, to filter users by ID, 
+or to filter by a number of other fields. 
+
+```golang
+func GetUsers(ctx context.Context, filter GetUserFilter) ([]User, error) {
+	return sqx.Read[User](ctx).
+		Select("*").
+		From("users").
+		Where(sqx.ToClause(filter)).
+		All()
+}
+```
+
+#### `sqx` vs `database/sql`
+
+Here's some sample code showing how someone might write the `GetUsers` function defined above using the stdlib.
+We want to avoid the manual management of errors + `rows.Close` + scanning boilerplate.
+
+```golang
+db, _ := sql.Open("mysql", "user:password...")
+query := "SELECT id, email, phone_number, status FROM users"
+
+rows, err := db.Query(query)
+if err != nil {
+	log.Fatal(err)
+}
+defer rows.Close()
+
+// Loop through the rows and populate User structs
+var users []User
+for rows.Next() {
+	var user User
+	err := rows.Scan(&user.ID, &user.Email, &user.PhoneNumber, &user.Status)
+	if err != nil {
+		log.Fatal(err)
+		continue
+	}
+	users = append(users, user)
+}
+```
+
+#### `sqx` vs `sqlx`
+
+[`sqlx`](https://github.com/jmoiron/sqlx) builds on `database/sql` to reduce scanning boilerplate. However, SQL generation is still nontrivial.
+How would you modify the code below to support flexible filters? e.g.
+- find all users with a status of `active`
+- find all users with a specific phone number and a specific email address
+
+We wanted the nice scanning attributes with the power and flexibility of a query builder.
+
+```golang 
+db, _ := sqlx.Open("mysql", "user:password...")
+// Define your SQL query
+query := "SELECT id, email, phone_number, status FROM users"
+// Execute the query and retrieve users
+var users []User
+err = db.Select(&users, query)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+
+#### `sqx` vs `gorm`
+[`gorm`](https://gorm.io/) is a full-featured ORM library. That's great for some people and some projects!
+gorm certainly does a great job of removing boilerplate around common DB IO.
+That being said - some people are ORM people and some people aren't. If you value full control over what SQL is being run, a
+query builder based approach is going to be friendlier than an ORM based approach.
+```golang
+var users []User
+if err := db.Table("users").Find(&users).Error; err != nil {
+	log.Fatal(err)
 }
 ```
 ----
