@@ -368,6 +368,21 @@ func Write(ctx context.Context, db sqx.Queryable) interface {
 The closest analog for `sqx` is [`knex.js`](https://knexjs.org/) - a Node query builder with wonderful DX.
 `sqx` wants to eliminate boilerplate commonly found in DB IO operations based on Rob Pike's [Errors are values](https://go.dev/blog/errors-are-values) essay.
 
+Returning to our [quick-start example](#quick-start), we see that `sqx` lets us create reusable DB query patterns with
+a minimal amount of boilerplate, while also not obscuring the SQL query that is generated. The following snippet shows 
+a single function that can be ran in several different ways - to list all users in the table, to filter users by ID, 
+or to filter by a number of other fields. 
+
+```golang
+func GetUsers(ctx context.Context, filter GetUserFilter) ([]User, error) {
+	return sqx.Read[User](ctx).
+		Select("*").
+		From("users").
+		Where(sqx.ToClause(filter)).
+		All()
+}
+```
+
 #### `sqx` vs `database/sql`
 
 Here's some sample code showing how someone might write the `GetUsers` function defined above using the stdlib.
