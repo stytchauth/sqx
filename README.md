@@ -282,13 +282,50 @@ func CreatePet(ctx context.Context, pet *Pet) error {
 }
 ```
 
+#### Managing Transactions
+`sqx` does not manage transactions itself. Create transactions within your application when needed, and then pass to
+`WithQueryable` to let the request builder know to use that transaction object. Both `sql.DB` and `sql.Tx` satisfy the `sqx.Queryable` interface.
+
+```golang
+func MyOperationThatNeedsATransaction(ctx context.Context) error {
+	// Get a Tx for making transaction requests.
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	// Defer a rollback in case anything fails.
+	defer tx.Rollback()
+	
+	err = OperationThatNeedsAQueryable(ctx, tx);
+	if err != nil {
+		return err
+	}
+
+	err = OperationThatNeedsAQueryable(ctx, tx);
+	if err != nil {
+		return err
+	}
+  
+	return tx.Commit()
+}
+
+func OperationThatNeedsAQueryable(ctx context.Context, tx sqx.Queryable) error {
+	return sqx.Write(ctx).
+		WithQueryable(tx).
+		Update("table").
+		Set("key", "value").
+		Do()
+}
+
+```
+
 #### Customizing Handles & Loggers
 
-Have multiple database handles or a per-request logger? You can override them using `WithDatabase` or `WithLogger`.
+Have multiple database handles or a per-request logger? You can override them using `WithQueryable` or `WithLogger`.
 ```golang
 func GetUsersFromReadReplica(ctx context.Context, filter GetUserFilter) ([]User, error) {
 	return sqx.Read[User](ctx).
-		WithDatabase(replicaDB).
+		WithQueryable(replicaDB).
 		WithLogger(logging.FromCtx(ctx))
 		Select("*").
 		From("users").
