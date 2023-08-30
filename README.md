@@ -1,4 +1,6 @@
 # Squirrel Xtended 
+[![Go Reference](https://pkg.go.dev/badge/github.com/stytchauth/sqx.svg)](https://pkg.go.dev/github.com/stytchauth/sqx)
+
 Squirrel Xtended (`sqx`) is a convenient library for db interactions in go. It provides nice bindings around:
 - [Masterminds/squirrel](https://github.com/Masterminds/squirrel) - for fluent SQL generation
 - [blockloop/scan](https://github.com/blockloop/scan) - for data marshalling
