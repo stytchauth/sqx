@@ -296,12 +296,12 @@ func MyOperationThatNeedsATransaction(ctx context.Context) error {
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
 	
-	err = OperationThatNeedsAQueryable(ctx, tx);
+	err = OperationThatNeedsAQueryable(ctx, tx)
 	if err != nil {
 		return err
 	}
 
-	err = OperationThatNeedsAQueryable(ctx, tx);
+	err = OperationThatNeedsAQueryable(ctx, tx)
 	if err != nil {
 		return err
 	}
