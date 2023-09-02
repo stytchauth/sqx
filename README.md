@@ -11,6 +11,7 @@ Squirrel Xtended (`sqx`) is a convenient library for db interactions in go. It p
 **Links**
 -  [Quick Start](#quick-start)
 -  [Core Concepts](#core-concepts)
+-  [FAQ](#faq)
 -  [Examples](#examples)
 -  [Why SQX](#why-sqx)
 -  [Contributing](#contributing)
@@ -112,9 +113,11 @@ type GetUserFilter struct {
 }
 ```
 
-- `sqx.ToClause(GetUserFilter{ID: sqx.Ptr("123")})` -> `sqx.Eq{"id": "123"}`
-- `sqx.ToClause(GetUserFilter{Email: sqx.Ptr("joe@example.com")})` -> `sqx.Eq{"email": "joe@example.com"}`
-- `sqx.ToClause(GetUserFilter{ID: sqx.Ptr("123"), Email: sqx.Ptr("joe@example.com")})` -> `sqx.Eq{"id": "123", "email": "joe@example.com"}`
+| Clause                                                                               | Output                                            |
+|--------------------------------------------------------------------------------------|---------------------------------------------------|
+| `sqx.ToClause(GetUserFilter{ID: sqx.Ptr("123")})`                                    | `sqx.Eq{"id": "123"}`                             |
+| `sqx.ToClause(GetUserFilter{Email: sqx.Ptr("joe@example.com")})`                     | `sqx.Eq{"email": "joe@example.com"}`              |
+| `sqx.ToClause(GetUserFilter{ID: sqx.Ptr("123"), Email: sqx.Ptr("joe@example.com")})` | `sqx.Eq{"id": "123", "email": "joe@example.com"}` |
 
 ```golang
 func GetUsers(ctx context.Context, filter GetUserFilter) ([]User, error) {
@@ -170,8 +173,10 @@ type UserUpdate struct {
 }
 ```
 
-- `sqx.ToSetMap(User{ID:"123", Email:"joe@example.com"})` -> `map[string]any{"id":"123", "email":"joe@example.com", "phone_number": "", "status":""}`
-- `sqx.ToSetMap(UserUpdate{ID:sqx.Ptr("123"), Email:sqx.Email("joe@example.com")})` -> `map[string]any{"id":"123", "email":"joe@example.com"}`
+| Input                                                                             | Output                                                                                   |
+|-----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| `sqx.ToSetMap(User{ID:"123", Email:"joe@example.com"})`                           | `map[string]any{"id":"123", "email":"joe@example.com", "phone_number": "", "status":""}` |
+| `sqx.ToSetMap(UserUpdate{ID:sqx.Ptr("123"), Email:sqx.Email("joe@example.com")})` | `map[string]any{"id":"123", "email":"joe@example.com"}`                                  |
 
 ```golang
 func InsertUser(ctx context.Context, user *User) error {
@@ -189,6 +194,16 @@ func UpdateUser(ctx context.Context, userID string, update *UserUpdate) error {
 		Do()
 }
 ```
+
+--
+
+### FAQ
+
+#### What SQL dialects are supported?
+
+`sqx` is actively tested against `mysql`.
+Since `sqx` is built on top of `squirrel`, it should support all SQL dialects `squirrel` supports.
+`squirrel` is tested against `mysql`, `postgres`, and `sqlite`.
 
 ---
 
