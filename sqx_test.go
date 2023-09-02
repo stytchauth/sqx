@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,16 +13,36 @@ import (
 	"github.com/stytchauth/sqx"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func init() {
 	sqx.SetDefaultLogger(sqx.MakeLogger(log.Printf))
+	db, ok := os.LookupEnv("DB")
+	if !ok {
+		panic("missing DB env variable")
+	}
+	if db == "POSTGRES" {
+		sqx.SetPostgres()
+	}
 }
 
 func CreateDatabase() (*sql.DB, error) {
-	return sql.Open("mysql", "sqx:sqx@tcp(localhost:4306)/sqx?parseTime=true")
+	db, ok := os.LookupEnv("DB")
+	if !ok {
+		return nil, fmt.Errorf("missing DB env variable")
+	}
+	switch db {
+	case "MYSQL":
+		return sql.Open("mysql", "sqx:sqx@tcp(localhost:4306)/sqx?parseTime=true")
+	case "POSTGRES":
+		return sql.Open("postgres",
+			"host=localhost port=4307 user=sqx password=sqx dbname=sqx sslmode=disable")
+	default:
+		return nil, fmt.Errorf("unknown DB env variable: %s", db)
+	}
 }
 
 // DB opens a new database connection for the duration of the test.
@@ -163,7 +184,8 @@ func TestInsert(t *testing.T) {
 		tx := Tx(t)
 		dbWidgetMissingTable := newDBWidget()
 		err := dbWidgetMissingTable.Create(ctx, tx, &w1)
-		assert.True(t, strings.Contains(err.Error(), "sqx_widgets_test' doesn't exist"))
+		assert.Error(t, err)
+		assert.True(t, strings.Contains(err.Error(), "sqx_widgets_test"))
 	})
 }
 
@@ -259,8 +281,9 @@ func TestUpdate(t *testing.T) {
 			Enabled: &enabled,
 		})
 
-		// Full error message: "Table 'testSQX.sqx_widgets_test' doesn't exist",
+		// Full error message in mysql: "Table 'testSQX.sqx_widgets_test' doesn't exist",
 		// The database name may be different in different environments - only check the table name
-		assert.True(t, strings.Contains(err.Error(), "sqx_widgets_test' doesn't exist"))
+		assert.Error(t, err)
+		assert.True(t, strings.Contains(err.Error(), "sqx_widgets_test"))
 	})
 }
