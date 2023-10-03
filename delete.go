@@ -2,6 +2,7 @@ package sqx
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	sq "github.com/stytchauth/squirrel"
@@ -68,14 +69,20 @@ func (b DeleteBuilder) Suffix(sql string, args ...interface{}) DeleteBuilder {
 
 // Do executes the DeleteBuilder
 func (b DeleteBuilder) Do() error {
+	_, err := b.DoResult()
+	return err
+}
+
+// DoResult executes the DeleteBuilder and also returns the sql.Result for a successful query. This is useful if you
+// wish to check the value of the LastInsertId() or RowsAffected() methods since Do() will discard this information.
+func (b DeleteBuilder) DoResult() (sql.Result, error) {
 	if b.err != nil {
-		return b.err
+		return nil, b.err
 	}
 	if b.queryable == nil {
-		return fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
+		return nil, fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
 	}
-	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
-	return err
+	return b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 }
 
 // Debug prints the DeleteBuilder state out to the provided logger

@@ -216,7 +216,7 @@ func TestUpdate(t *testing.T) {
 
 		// Owner IDs are null by default. Set the owner ID to a non-null value
 		assert.NoError(t, dbWidget.Update(ctx, tx, w1.ID, &widgetUpdateFilter{
-			OwnerID: sqx.NewNullable[string](ownerID),
+			OwnerID: sqx.NewNullable(ownerID),
 		}))
 		w1db, err := dbWidget.GetByID(ctx, tx, w1.ID)
 		assert.NoError(t, err)
@@ -238,6 +238,32 @@ func TestUpdate(t *testing.T) {
 		// Empty update should not work
 		err := dbWidget.Update(ctx, tx, w1.ID, &widgetUpdateFilter{})
 		assert.NoError(t, err)
+	})
+
+	t.Run("UpdateResult returns 0 rows affected on no updates", func(t *testing.T) {
+		tx := Tx(t)
+		setupTestWidgetsTable(t, tx)
+		dbWidget := newDBWidget()
+		// Empty update should not work
+		res, err := dbWidget.UpdateResult(ctx, tx, w1.ID, &widgetUpdateFilter{})
+		assert.NoError(t, err)
+		rowsAffected, err := res.RowsAffected()
+		assert.NoError(t, err)
+		assert.Zero(t, rowsAffected)
+	})
+
+	t.Run("UpdateResult returns >0 rows affected when updates are made", func(t *testing.T) {
+		tx := Tx(t)
+		setupTestWidgetsTable(t, tx)
+		dbWidget := newDBWidget()
+		require.NoError(t, dbWidget.Create(ctx, tx, &w1))
+		res, err := dbWidget.UpdateResult(ctx, tx, w1.ID, &widgetUpdateFilter{
+			Status: &status,
+		})
+		assert.NoError(t, err)
+		rowsAffected, err := res.RowsAffected()
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), rowsAffected)
 	})
 
 	t.Run("Returns an error when SetMap fails", func(t *testing.T) {

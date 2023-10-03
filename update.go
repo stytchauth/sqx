@@ -2,6 +2,7 @@ package sqx
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -122,18 +123,24 @@ func (b UpdateBuilder) SuffixExpr(expr Sqlizer) UpdateBuilder {
 
 // Do executes the UpdateBuilder
 func (b UpdateBuilder) Do() error {
+	_, err := b.DoResult()
+	return err
+}
+
+// DoResult executes the InsertBuilder and also returns the sql.Result for a successful query. This is useful if you
+// wish to check the value of the LastInsertId() or RowsAffected() methods since Do() will discard this information.
+func (b UpdateBuilder) DoResult() (sql.Result, error) {
 	if b.err != nil {
-		return b.err
+		return nil, b.err
 	}
 	if !b.hasChanges {
 		log.Println("Skipping write to DB - no updates set")
-		return nil
+		return EmptyResult{}, nil
 	}
 	if b.queryable == nil {
-		return fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
+		return nil, fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
 	}
-	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
-	return err
+	return b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 }
 
 // Debug prints the UpdateBuilder state out to the provided logger

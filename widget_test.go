@@ -2,6 +2,7 @@ package sqx_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/stytchauth/sqx"
@@ -62,12 +63,17 @@ func (w *widgetUpdateFilter) toSetMap() (map[string]any, error) {
 }
 
 func (d *dbWidget) Update(ctx context.Context, tx sqx.Queryable, widgetID string, f *widgetUpdateFilter) error {
+	_, err := d.UpdateResult(ctx, tx, widgetID, f)
+	return err
+}
+
+func (d *dbWidget) UpdateResult(ctx context.Context, tx sqx.Queryable, widgetID string, f *widgetUpdateFilter) (sql.Result, error) {
 	return sqx.Write(ctx).
 		WithQueryable(tx).
 		Update("sqx_widgets_test").
 		Where(sqx.Eq{"widget_id": widgetID}).
 		SetMap(f.toSetMap()).
-		Do()
+		DoResult()
 }
 
 func (d *dbWidget) GetByID(ctx context.Context, tx sqx.Queryable, widgetID string) (*Widget, error) {
