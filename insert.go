@@ -2,6 +2,7 @@ package sqx
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	sq "github.com/stytchauth/squirrel"
@@ -72,14 +73,20 @@ func (b InsertBuilder) SetMap(clauses map[string]interface{}, errors ...error) I
 
 // Do executes the InsertBuilder
 func (b InsertBuilder) Do() error {
+	_, err := b.DoResult()
+	return err
+}
+
+// DoResult executes the InsertBuilder and also returns the sql.Result for a successful query. This is useful if you
+// wish to check the value of the LastInsertId() or RowsAffected() methods since Do() will discard this information.
+func (b InsertBuilder) DoResult() (sql.Result, error) {
 	if b.err != nil {
-		return b.err
+		return nil, b.err
 	}
 	if b.queryable == nil {
-		return fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
+		return nil, fmt.Errorf("missing queryable - call SetDefaultQueryable or WithQueryable to set it")
 	}
-	_, err := b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
-	return err
+	return b.builder.RunWith(runShim{b.queryable}).ExecContext(b.ctx)
 }
 
 // Debug prints the InsertBuilder state out to the provided logger
