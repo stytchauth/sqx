@@ -16,3 +16,15 @@ type Or = sq.Or
 
 // Sqlizer is an interface containing the ToSql method. It is a re-export of squirrel.Sqlizer.
 type Sqlizer = sq.Sqlizer
+
+// Gt represents a SQL > expression. It is a re-export of squirrel.Gt.
+type Gt = sq.Gt
+
+// GtOrEq represents a SQL >= expression. It is a re-export of squirrel.GtOrEq.
+type GtOrEq = sq.GtOrEq
+
+// Lt represents a SQL < expression. It is a re-export of squirrel.Lt.
+type Lt = sq.Lt
+
+// LtOrEq represents a SQL <= expression. It is a re-export of squirrel.LtOrEq.
+type LtOrEq = sq.LtOrEq

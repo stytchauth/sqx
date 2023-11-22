@@ -1,8 +1,12 @@
 package sqx
 
 import (
+	"errors"
+
 	scan "github.com/blockloop/scan/v2"
 )
+
+var NoDBTagsError = errors.New("No db tags detected")
 
 // Clause stores an Eq result, but also holds an error if one occurred during the conversion. You may think of this
 // struct as a (Eq, error) tuple that implements the Sqlizer interface.
@@ -27,6 +31,9 @@ func ToClause(v any, excluded ...string) *Clause {
 	cols, err := scan.ColumnsStrict(v, excluded...)
 	if err != nil {
 		return &Clause{contents: nil, err: err}
+	}
+	if len(cols) == 0 {
+		return &Clause{contents: nil, err: NoDBTagsError}
 	}
 	vals, err := scan.Values(cols, v)
 	if err != nil {

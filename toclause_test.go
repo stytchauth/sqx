@@ -28,6 +28,11 @@ type thingyGetFilter struct {
 	IntCol *[]int  `db:"int_col"`
 }
 
+type thingyGetFilterWithNoTags struct {
+	StrCol *string
+	IntCol *[]int
+}
+
 func TestToClause(t *testing.T) {
 	filter := thingyGetFilter{
 		StrCol: Ptr("i am str"),
@@ -66,6 +71,11 @@ func TestToClause(t *testing.T) {
 
 		clause := ToClause(&thingyGetFilter{})
 		assert.Equal(t, expected, clause.contents)
+	})
+
+	t.Run("Has an error if given a struct with no db tags", func(t *testing.T) {
+		clause := ToClause(&thingyGetFilterWithNoTags{})
+		assert.Error(t, clause.err)
 	})
 }
 
