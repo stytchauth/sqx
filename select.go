@@ -266,13 +266,13 @@ func (b SelectBuilder[T]) First() (*T, error) {
 		return nil, err
 	}
 
-	var dest *T
-	err = scan.RowStrict(dest, rows)
+	var dest T
+	err = scan.RowStrict(&dest, rows)
 	if err != nil {
 		return nil, err
 	}
 
-	return dest, nil
+	return &dest, nil
 }
 
 // FirstScalar is like First but dereferences the result into a scalar value. If an error is raised, the scalar value

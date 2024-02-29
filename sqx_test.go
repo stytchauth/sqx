@@ -167,6 +167,37 @@ func TestInsert(t *testing.T) {
 	})
 }
 
+func TestSelect(t *testing.T) {
+	ctx := context.Background()
+
+	w1 := newWidget("great")
+	w2 := newWidget("fine")
+
+	t.Run("First returns either w1 or w2", func(t *testing.T) {
+		tx := Tx(t)
+		setupTestWidgetsTable(t, tx)
+		dbWidget := newDBWidget()
+		require.NoError(t, dbWidget.Create(ctx, tx, &w1))
+		require.NoError(t, dbWidget.Create(ctx, tx, &w2))
+
+		w, err := dbWidget.First(ctx, tx, &widgetGetFilter{})
+
+		require.NoError(t, err)
+		assert.True(t, *w == w1 || *w == w2)
+	})
+
+	t.Run("First returns an error when no rows are found", func(t *testing.T) {
+		tx := Tx(t)
+		setupTestWidgetsTable(t, tx)
+		dbWidget := newDBWidget()
+
+		_, err := dbWidget.First(ctx, tx, &widgetGetFilter{})
+
+		assert.Error(t, err)
+		assert.EqualError(t, sql.ErrNoRows, err.Error())
+	})
+}
+
 func TestDelete(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
