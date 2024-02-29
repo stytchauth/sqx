@@ -26,8 +26,7 @@ func (w Widget) toSetMap() (map[string]any, error) {
 	return sqx.ToSetMap(&w)
 }
 
-type dbWidget struct {
-}
+type dbWidget struct{}
 
 func newDBWidget() dbWidget {
 	return dbWidget{}
@@ -97,6 +96,15 @@ func (d *dbWidget) Get(ctx context.Context, tx sqx.Queryable, f *widgetGetFilter
 		From("sqx_widgets_test").
 		Where(sqx.ToClause(f)).
 		All()
+}
+
+func (d *dbWidget) First(ctx context.Context, tx sqx.Queryable, f *widgetGetFilter) (*Widget, error) {
+	return sqx.Read[Widget](ctx).
+		WithQueryable(tx).
+		Select("*").
+		From("sqx_widgets_test").
+		Where(sqx.ToClause(f)).
+		First()
 }
 
 func (d *dbWidget) GetAll(ctx context.Context, tx sqx.Queryable) ([]Widget, error) {
