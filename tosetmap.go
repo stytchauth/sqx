@@ -1,9 +1,17 @@
 package sqx
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 
 	scan "github.com/blockloop/scan/v2"
+)
+
+const (
+	dbTag                   = "db"
+	sqxTag                  = "sqx"
+	excludeOnInsertTagValue = "excludeOnInsert"
 )
 
 // ToSetMap converts a struct into a map[string]any based on the presence of "db" struct tags
@@ -13,6 +21,14 @@ func ToSetMap(v any, excluded ...string) (map[string]any, error) {
 	if isNil(v) {
 		return map[string]any{}, nil
 	}
+
+	model, err := reflectValue(v)
+	if err != nil {
+		return nil, fmt.Errorf("ToSetMap: %w", err)
+	}
+
+	newExclusions := excludedTags(model)
+	excluded = append(excluded, newExclusions...)
 	cols, err := scan.ColumnsStrict(v, excluded...)
 	if err != nil {
 		return nil, err
@@ -50,4 +66,53 @@ func ToSetMapAlias(tableName string, v any, excluded ...string) (map[string]any,
 		aliasedSetMap[tableName+"."+key] = value
 	}
 	return aliasedSetMap, nil
+}
+
+func excludedTags(model reflect.Value) []string {
+	numfield := model.NumField()
+	res := []string{}
+
+	for i := 0; i < numfield; i++ {
+		valField := model.Field(i)
+		if !valField.IsValid() || !valField.CanSet() {
+			continue
+		}
+
+		typeField := model.Type().Field(i)
+
+		dbTag, hasDBTag := typeField.Tag.Lookup(dbTag)
+		if !hasDBTag || dbTag == "-" {
+			continue
+		}
+
+		sqxTag, hasSQXTag := typeField.Tag.Lookup(sqxTag)
+		if !hasSQXTag || sqxTag == "-" {
+			continue
+		}
+
+		tagValues := strings.Split(sqxTag, ",")
+		for _, tagValue := range tagValues {
+			if tagValue == excludeOnInsertTagValue {
+				res = append(res, dbTag)
+				break
+			}
+		}
+	}
+
+	return res
+}
+
+// Same logic as blockloop.scan for extracting the reflect.Value from a pointer.
+func reflectValue(v interface{}) (reflect.Value, error) {
+	vType := reflect.TypeOf(v)
+	vKind := vType.Kind()
+	if vKind != reflect.Ptr {
+		return reflect.Value{}, fmt.Errorf("%q must be a pointer: %w", vKind.String(), scan.ErrNotAPointer)
+	}
+
+	vVal := reflect.Indirect(reflect.ValueOf(v))
+	if vVal.Kind() != reflect.Struct {
+		return reflect.Value{}, fmt.Errorf("%q must be a pointer to a struct: %w", vKind.String(), scan.ErrNotAStructPointer)
+	}
+	return vVal, nil
 }

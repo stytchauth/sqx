@@ -48,6 +48,14 @@ func (b InsertManyBuilder[T]) FromItems(items []T, excluded ...string) InsertMan
 		return b
 	}
 
+	model, err := reflectValue(&items[0])
+	if err != nil {
+		return b.withError(err)
+	}
+
+	newExclusions := excludedTags(model)
+	excluded = append(excluded, newExclusions...)
+
 	cols, err := scan.ColumnsStrict(&items[0], excluded...)
 	if err != nil {
 		return b.withError(err)

@@ -4,15 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/stytchauth/sqx"
 )
 
 type Widget struct {
-	ID      string  `db:"widget_id"`
-	Status  string  `db:"status"`
-	Enabled bool    `db:"enabled"`
-	OwnerID *string `db:"owner_id"`
+	ID        string     `db:"widget_id"`
+	Status    string     `db:"status"`
+	Enabled   bool       `db:"enabled"`
+	OwnerID   *string    `db:"owner_id"`
+	CreatedAt *time.Time `db:"created_at" sqx:"excludeOnInsert"`
 }
 
 func (w Widget) toSetMap() (map[string]any, error) {

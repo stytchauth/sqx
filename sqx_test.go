@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stytchauth/sqx"
@@ -74,7 +75,8 @@ func setupTestWidgetsTable(t *testing.T, tx *sql.Tx) {
 			widget_id		VARCHAR(128) NOT NULL,
 			status			VARCHAR(128) NOT NULL,
 			enabled			BOOLEAN NOT NULL,
-			owner_id 		VARCHAR(128)
+			owner_id 		VARCHAR(128),
+			created_at	TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	require.NoError(t, err)
@@ -103,6 +105,15 @@ func TestRead(t *testing.T) {
 
 	require.NoError(t, dbWidget.Create(ctx, tx, &w1))
 	require.NoError(t, dbWidget.Create(ctx, tx, &w2))
+
+	// We first need to retrieve the created_at timestamp from the database
+	// to compare it with the expected value
+	w1db, err := dbWidget.GetByID(ctx, tx, w1.ID)
+	assert.NoError(t, err)
+	w1.CreatedAt = w1db.CreatedAt
+	w2db, err := dbWidget.GetByID(ctx, tx, w2.ID)
+	assert.NoError(t, err)
+	w2.CreatedAt = w2db.CreatedAt
 
 	t.Run("Can read a single widget", func(t *testing.T) {
 		w1db, err := dbWidget.GetByID(ctx, tx, w1.ID)
@@ -151,8 +162,22 @@ func TestRead(t *testing.T) {
 		w4Read, err := dbWidget.GetByID(ctx, tx, w4.ID)
 		assert.NoError(t, err)
 
+		w3.CreatedAt = w3Read.CreatedAt
 		assert.Equal(t, &w3, w3Read)
+		w4.CreatedAt = w4Read.CreatedAt
 		assert.Equal(t, &w4, w4Read)
+	})
+
+	t.Run("Ignores fields with excludeOnInsert tag", func(t *testing.T) {
+		w5 := newWidget("exemplary")
+		w5.CreatedAt = ptr(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC))
+		err := dbWidget.Create(ctx, tx, &w5)
+		assert.NoError(t, err)
+
+		w5Read, err := dbWidget.GetByID(ctx, tx, w5.ID)
+		assert.NoError(t, err)
+		// Assuming you aren't running this test from the past...
+		assert.NotEqual(t, w5.CreatedAt, w5Read.CreatedAt)
 	})
 }
 
@@ -198,6 +223,7 @@ func TestSelect(t *testing.T) {
 		w, err := dbWidget.First(ctx, tx, &widgetGetFilter{})
 
 		require.NoError(t, err)
+		w.CreatedAt = nil
 		assert.True(t, *w == w1 || *w == w2)
 	})
 
@@ -246,9 +272,10 @@ func TestUpdate(t *testing.T) {
 		w1db, err := dbWidget.GetByID(ctx, tx, w1.ID)
 		assert.NoError(t, err)
 		expected := &Widget{
-			ID:      w1.ID,
-			Status:  "excellent",
-			Enabled: w1.Enabled,
+			ID:        w1.ID,
+			Status:    "excellent",
+			Enabled:   w1.Enabled,
+			CreatedAt: w1db.CreatedAt,
 		}
 		assert.Equal(t, expected, w1db)
 	})
