@@ -55,6 +55,10 @@ func Write(ctx context.Context) runCtx {
 	}
 }
 
+func TypedWrite[T any](ctx context.Context) typedRunCtx[T] {
+	return typedRunCtx[T]{Write(ctx)}
+}
+
 // Select constructs a new SelectBuilder for the given columns for this typedRunCtx.
 func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
 	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
@@ -68,6 +72,10 @@ func (rc runCtx) Update(table string) UpdateBuilder {
 // Insert constructs a new InsertBuilder for the given table for this typedRunCtx.
 func (rc runCtx) Insert(table string) InsertBuilder {
 	return InsertBuilder{builder: sq.Insert(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
+}
+
+func (rc typedRunCtx[T]) InsertMany(table string) InsertManyBuilder[T] {
+	return InsertManyBuilder[T]{builder: sq.Insert(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 // Delete constructs a new DeleteBuilder for the given table for this typedRunCtx.

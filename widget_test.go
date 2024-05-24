@@ -40,6 +40,14 @@ func (d *dbWidget) Create(ctx context.Context, tx sqx.Queryable, w *Widget) erro
 		Do()
 }
 
+func (d *dbWidget) CreateMany(ctx context.Context, tx sqx.Queryable, ws []Widget) error {
+	return sqx.TypedWrite[Widget](ctx).
+		WithQueryable(tx).
+		InsertMany("sqx_widgets_test").
+		FromItems(ws).
+		Do()
+}
+
 func (d *dbWidget) Delete(ctx context.Context, tx sqx.Queryable, widgetID string) error {
 	return sqx.Write(ctx).
 		WithQueryable(tx).

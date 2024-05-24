@@ -139,6 +139,21 @@ func TestRead(t *testing.T) {
 		_, err := dbWidget.GetByID(ctx, tx, w1.ID)
 		assert.EqualError(t, expected, err.Error())
 	})
+
+	t.Run("Succeeds when multiple widgets are written at once", func(t *testing.T) {
+		w3 := newWidget("alright")
+		w4 := newWidget("okay")
+		err := dbWidget.CreateMany(ctx, tx, []Widget{w3, w4})
+		assert.NoError(t, err)
+
+		w3Read, err := dbWidget.GetByID(ctx, tx, w3.ID)
+		assert.NoError(t, err)
+		w4Read, err := dbWidget.GetByID(ctx, tx, w4.ID)
+		assert.NoError(t, err)
+
+		assert.Equal(t, &w3, w3Read)
+		assert.Equal(t, &w4, w4Read)
+	})
 }
 
 func TestInsert(t *testing.T) {
