@@ -28,3 +28,15 @@ type Lt = sq.Lt
 
 // LtOrEq represents a SQL <= expression. It is a re-export of squirrel.LtOrEq.
 type LtOrEq = sq.LtOrEq
+
+// Like represents a SQL LIKE expression. It is a re-export of squirrel.Like.
+type Like = sq.Like
+
+// NotLike represents a SQL NOT LIKE expression. It is a re-export of squirrel.NotLike.
+type NotLike = sq.NotLike
+
+// ILike represents a SQL ILIKE expression. It is a re-export of squirrel.ILike.
+type ILike = sq.ILike
+
+// NotILike represents a SQL NOT ILIKE expression. It is a re-export of squirrel.NotILike.
+type NotILike = sq.NotILike
