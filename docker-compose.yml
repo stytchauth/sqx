@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   mysql:
     # Required to make the mysql image function on the M1 macs
