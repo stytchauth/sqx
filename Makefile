@@ -7,7 +7,8 @@ help:
 .PHONY: tests
 .PHONY: test
 tests test: # Runs unit tests
-	go test
+	DB=MYSQL go test
+	DB=POSTGRES go test
 
 .PHONY: lint
 lint: # Run the linter and auto-fix issues where possible
