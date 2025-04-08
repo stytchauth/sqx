@@ -88,6 +88,11 @@ func (b InsertManyBuilder[T]) Debug() InsertManyBuilder[T] {
 	return b
 }
 
+// SuffixExpr adds an expression to the end of the query
+func (b InsertManyBuilder[T]) SuffixExpr(expr Sqlizer) InsertManyBuilder[T] {
+	return b.withBuilder(b.builder.SuffixExpr(expr))
+}
+
 // WithQueryable configures a Queryable for this InsertManyBuilder instance
 func (b InsertManyBuilder[T]) WithQueryable(queryable Queryable) InsertManyBuilder[T] {
 	return InsertManyBuilder[T]{builder: b.builder, queryable: queryable, logger: b.logger, ctx: b.ctx, err: b.err}
