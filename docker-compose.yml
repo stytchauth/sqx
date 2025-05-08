@@ -6,8 +6,6 @@ services:
     command:
       # Ensure a consistent timezone for timestamps by running in UTC.
       - '--default-time-zone=+00:00'
-      # The SQL mode must match the RDS settings in the platform repo. You can also check this by
-      # running `SELECT @@SQL_MODE`.
       - '--sql-mode=STRICT_TRANS_TABLES,STRICT_ALL_TABLES'
 
     ports:
@@ -18,3 +16,14 @@ services:
       MYSQL_USER: sqx
       MYSQL_PASSWORD: sqx
       MYSQL_DATABASE: sqx
+  postgres:
+    # Required to make the mysql image function on the M1 macs
+    platform: linux/x86_64
+    image: postgres:12.16
+    ports:
+      - "4307:5432"
+    environment:
+      # This is only for local development, so these insecure settings are fine.
+      POSTGRES_USER: sqx
+      POSTGRES_PASSWORD: sqx
+      POSTGRES_DB: sqx
