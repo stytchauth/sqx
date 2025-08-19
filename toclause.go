@@ -6,7 +6,10 @@ import (
 	scan "github.com/blockloop/scan/v2"
 )
 
-var NoDBTagsError = errors.New("No db tags detected")
+var (
+	ErrNoDBTags        = errors.New("no db tags detected")
+	ErrDuplicateDBTags = errors.New("duplicate db tags detected")
+)
 
 // Clause stores an Eq result, but also holds an error if one occurred during the conversion. You may think of this
 // struct as a (Eq, error) tuple that implements the Sqlizer interface.
@@ -33,12 +36,22 @@ func ToClause(v any, excluded ...string) *Clause {
 		return &Clause{contents: nil, err: err}
 	}
 	if len(cols) == 0 {
-		return &Clause{contents: nil, err: NoDBTagsError}
+		return &Clause{contents: nil, err: ErrNoDBTags}
 	}
 	vals, err := scan.Values(cols, v)
 	if err != nil {
 		return &Clause{contents: nil, err: err}
 	}
+
+	seen := make(map[string]bool, len(cols))
+	for _, col := range cols {
+		// Check for duplicate db tags
+		if seen[col] {
+			return &Clause{contents: nil, err: ErrDuplicateDBTags}
+		}
+		seen[col] = true
+	}
+
 	contents := Eq{}
 	for i := range cols {
 		if !isNil(vals[i]) {

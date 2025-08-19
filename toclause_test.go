@@ -33,6 +33,11 @@ type thingyGetFilterWithNoTags struct {
 	IntCol *[]int
 }
 
+type thingyGetFilterWithDuplicateTags struct {
+	Field1 *string `db:"same_col"`
+	Field2 *string `db:"same_col"`
+}
+
 func TestToClause(t *testing.T) {
 	filter := thingyGetFilter{
 		StrCol: Ptr("i am str"),
@@ -76,6 +81,15 @@ func TestToClause(t *testing.T) {
 	t.Run("Has an error if given a struct with no db tags", func(t *testing.T) {
 		clause := ToClause(&thingyGetFilterWithNoTags{})
 		assert.Error(t, clause.err)
+	})
+
+	t.Run("Has an error if given a struct with duplicate db tags", func(t *testing.T) {
+		clause := ToClause(&thingyGetFilterWithDuplicateTags{
+			Field1: Ptr("value1"),
+			Field2: Ptr("value2"),
+		})
+		assert.Error(t, clause.err)
+		assert.Equal(t, ErrDuplicateDBTags, clause.err)
 	})
 }
 
