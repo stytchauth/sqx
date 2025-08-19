@@ -125,7 +125,15 @@ func (b SelectBuilder[T]) CrossJoin(join string, rest ...interface{}) SelectBuil
 //
 // Where will panic if pred isn't any of the above types.
 func (b SelectBuilder[T]) Where(pred interface{}, rest ...interface{}) SelectBuilder[T] {
-	return b.withBuilder(b.builder.Where(pred, rest...))
+	builder := b.withBuilder(b.builder.Where(pred, rest...))
+
+	// If the predicate can be cast to a *Clause then we should propagate
+	// any errors on the *Clause to the SelectBuilder. They will be returned
+	// to the caller when `(SelectBuilder[T]).query` is invoked.
+	if clause, ok := pred.(*Clause); ok && clause != nil && clause.err != nil {
+		builder = builder.withError(clause.err)
+	}
+	return builder
 }
 
 // GroupBy adds GROUP BY expressions to the query.

@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
-	"github.com/stytchauth/sqx"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/stytchauth/sqx"
 )
 
 func init() {
@@ -153,6 +153,30 @@ func TestRead(t *testing.T) {
 
 		assert.Equal(t, &w3, w3Read)
 		assert.Equal(t, &w4, w4Read)
+	})
+
+	t.Run("Returns an error when a provided Clause has duplicate struct tags", func(t *testing.T) {
+		type RowFilter struct {
+			Name          *string `db:"name"`
+			DuplicateName *string `db:"name"`
+		}
+
+		filter := &RowFilter{
+			Name:          ptr("stytch"),
+			DuplicateName: ptr("stytch-auth"),
+		}
+
+		// Even though the struct tags on RowFilter don't correspond to any
+		// columns in the `sqx_widgets_test` table, an error will be returned
+		// before any queries are made to the database.
+		_, err := sqx.Read[Widget](ctx).
+			WithQueryable(tx).
+			Select("*").
+			From("sqx_widgets_test").
+			Where(sqx.ToClause(filter)).
+			All()
+		require.Error(t, err)
+		assert.ErrorIs(t, err, sqx.ErrDuplicateDBTags)
 	})
 }
 
