@@ -61,17 +61,20 @@ func TypedWrite[T any](ctx context.Context) typedRunCtx[T] {
 
 // Select constructs a new SelectBuilder for the given columns for this typedRunCtx.
 func (rc typedRunCtx[T]) Select(columns ...string) SelectBuilder[T] {
-	return SelectBuilder[T]{builder: sq.Select(columns...), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
+	builder := sq.Select(columns...).PlaceholderFormat(defaultPlaceholderFormat)
+	return SelectBuilder[T]{builder: builder, queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 // Update constructs a new UpdateBuilder for the given table for this typedRunCtx.
 func (rc runCtx) Update(table string) UpdateBuilder {
-	return UpdateBuilder{builder: sq.Update(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
+	builder := sq.Update(table).PlaceholderFormat(defaultPlaceholderFormat)
+	return UpdateBuilder{builder: builder, queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 // Insert constructs a new InsertBuilder for the given table for this typedRunCtx.
 func (rc runCtx) Insert(table string) InsertBuilder {
-	return InsertBuilder{builder: sq.Insert(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
+	builder := sq.Insert(table).PlaceholderFormat(defaultPlaceholderFormat)
+	return InsertBuilder{builder: builder, queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 func (rc typedRunCtx[T]) InsertMany(table string) InsertManyBuilder[T] {
@@ -80,7 +83,8 @@ func (rc typedRunCtx[T]) InsertMany(table string) InsertManyBuilder[T] {
 
 // Delete constructs a new DeleteBuilder for the given table for this typedRunCtx.
 func (rc runCtx) Delete(table string) DeleteBuilder {
-	return DeleteBuilder{builder: sq.Delete(table), queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
+	builder := sq.Delete(table).PlaceholderFormat(defaultPlaceholderFormat)
+	return DeleteBuilder{builder: builder, queryable: rc.queryable, logger: rc.logger, ctx: rc.ctx}
 }
 
 // runShim maps a Queryable to the squirrel.BaseRunner interface
