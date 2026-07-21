@@ -9,31 +9,30 @@ jobs:
     runs-on: ubuntu-latest
     name: Publish GitHub release
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get version
         id: version
         run: |
           VERSION=$(sed -n 's/.*VERSION = "\(.*\)".*/\1/p' version.go)
-          echo "release_tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "release_tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Get changed files
-        id: files
-        uses: jitterbit/get-changed-files@v1
-
-      - name: Check for config.go diff
+      - name: Check for version.go diff
         id: diff
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
-          FOUND=0
-          for changed_file in ${{ steps.files.outputs.all }}; do
-            if [[ "$changed_file" == "version.go" ]]; then
-              FOUND=1
-            fi
-          done
-          echo "diff=$FOUND" >> $GITHUB_OUTPUT
+          git fetch --depth=1 origin "$BASE_SHA"
+          if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- version.go; then
+            echo "diff=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "diff=1" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create release
         if: steps.diff.outputs.diff != 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create ${{ steps.version.outputs.release_tag }} --generate-notes
+          RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
+        run: gh release create "$RELEASE_TAG" --generate-notes
